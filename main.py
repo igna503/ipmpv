@@ -28,6 +28,7 @@ os.environ["LC_ALL"] = "C"
 os.environ["LANG"] = "C"
 
 is_wayland = "WAYLAND_DISPLAY" in os.environ
+osd_corner_radius = os.environ.get("IPMPV_CORNER_RADIUS")
 
 to_qt_queue = Queue()
 from_qt_queue = Queue()
@@ -35,7 +36,7 @@ from_qt_queue = Queue()
 M3U_URL = os.environ.get('IPMPV_M3U_URL')
 
 class OsdWidget(QWidget):
-	def __init__(self, channel_info, width=600, height=165, close_time=5, corner_radius=15):
+	def __init__(self, channel_info, width=600, height=165, close_time=5, corner_radius=int(osd_corner_radius) if osd_corner_radius is not None else 15):
 		global is_wayland
 		super().__init__()
 	
@@ -338,7 +339,6 @@ def get_current_resolution():
 	try:
 		if is_wayland:
 			wlr_randr_env = os.environ.copy()
-			wlr_randr_env["WAYLAND_DISPLAY"] = "wayland-1"
 			output = subprocess.check_output(["wlr-randr"], universal_newlines=True, env=wlr_randr_env)
 			if "Composite-1" in output.split("\n")[0]:
 				for line in output.split("\n"):
@@ -352,7 +352,6 @@ def get_current_resolution():
 							return "288p"
 		else:
 			xrandr_env = os.environ.copy()
-			xrandr_env["DISPLAY"] = ":0"
 			output = subprocess.check_output(["xrandr"], universal_newlines=True, env=xrandr_env)
 			for line in output.split("\n"):
 				if "Composite-1" in line:
@@ -765,7 +764,6 @@ def toggle_retroarch():
 		print("Launching RetroArch")
 		retroarch_env = os.environ.copy()
 		retroarch_env["MESA_GL_VERSION_OVERRIDE"] = "3.3"
-		retroarch_env["DISPLAY"] = ":0"
 		retroarch_p = subprocess.Popen(["/usr/bin/flatpak","run","org.libretro.RetroArch"], env=retroarch_env)
 		return jsonify(state=True)
 
@@ -819,7 +817,7 @@ def toggle_resolution():
 		else:
 			xrandr_env = os.environ.copy()
 			xrandr_env["DISPLAY"] = ":0"
-			subprocess.run(["wlr-randr", "--output", "Composite-1", "--mode", new_res], check=False, env=xrandr_env)
+			subprocess.run(["xrandr", "--output", "Composite-1", "--mode", new_res], check=False, env=xrandr_env)
 			resolution = get_current_resolution()
 
 	return jsonify(res=get_current_resolution())
