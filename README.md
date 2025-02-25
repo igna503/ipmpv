@@ -58,6 +58,12 @@ Additionally, the following applications and libraries are required to be instal
 
 - (RPI Specific) python3-pyqt5, it won't install via pip due to RAM constraints
 
+## Environment variables
+
+- IPMPV_M3U_URL: The URL of your M3U playlist. Default: None
+- IPMPV_CORNER_RADIUS: Corner radius of the OSD. Set to 0 for sharp edges. Default: 15
+- IPMPV_RETROARCH_CMD: Your custom RetroArch command, if any. Default: 'retroarch'
+
 ## Coming Soon
 
 ### Short term

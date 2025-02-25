@@ -23,6 +23,7 @@ os.environ["LANG"] = "C"
 
 is_wayland = "WAYLAND_DISPLAY" in os.environ
 osd_corner_radius = os.environ.get("IPMPV_CORNER_RADIUS")
+ipmpv_retroarch_cmd = os.environ.get("IPMPV_RETROARCH_CMD")
 
 to_qt_queue = Queue()
 from_qt_queue = Queue()
@@ -31,7 +32,7 @@ M3U_URL = os.environ.get('IPMPV_M3U_URL')
 
 class OsdWidget(QWidget):
 	def __init__(self, channel_info, width=600, height=165, close_time=5, corner_radius=int(osd_corner_radius) if osd_corner_radius is not None else 15):
-	
+
 		QFontDatabase.addApplicationFont('FiraSans-Regular.ttf')
 		QFontDatabase.addApplicationFont('FiraSans-Bold.ttf')
 
@@ -761,7 +762,7 @@ def toggle_retroarch():
 		print("Launching RetroArch")
 		retroarch_env = os.environ.copy()
 		retroarch_env["MESA_GL_VERSION_OVERRIDE"] = "3.3"
-		retroarch_p = subprocess.Popen(["/usr/bin/flatpak","run","org.libretro.RetroArch"], env=retroarch_env)
+		retroarch_p = subprocess.Popen(re.split('\s', ipmpv_retroarch_cmd if ipmpv_retroarch_cmd is not None else 'retroarch'), env=retroarch_env)
 		return jsonify(state=True)
 
 @app.route("/toggle_latency")
