@@ -7,22 +7,16 @@ import re
 import subprocess
 import os
 import time
-import threading
-import io
 import multiprocessing
-
-from PIL import Image
 
 from flask import request
 from flask import jsonify
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout
-from PyQt5.QtCore import Qt, QObject, QTimer, QRect, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush, QPixmap, QPainterPath
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 
 from multiprocessing import Queue
-
-import traceback
 
 os.environ["LC_ALL"] = "C"
 os.environ["LANG"] = "C"
@@ -37,9 +31,13 @@ M3U_URL = os.environ.get('IPMPV_M3U_URL')
 
 class OsdWidget(QWidget):
 	def __init__(self, channel_info, width=600, height=165, close_time=5, corner_radius=int(osd_corner_radius) if osd_corner_radius is not None else 15):
+	
+		QFontDatabase.addApplicationFont('FiraSans-Regular.ttf')
+		QFontDatabase.addApplicationFont('FiraSans-Bold.ttf')
+
 		global is_wayland
 		super().__init__()
-	
+
 		self.channel_info = channel_info
 		self.orig_width = width
 		self.orig_height = height
@@ -53,31 +51,31 @@ class OsdWidget(QWidget):
 		# Setup window
 		self.setWindowTitle("OSD")
 		self.setFixedSize(width, height)
-		
+
 		# Check if we're running on Wayland
 		self.is_wayland = is_wayland
-		
+
 		# Set appropriate window flags and size
 		if self.is_wayland:
 			# For Wayland, use fullscreen transparent approach
 			self.setWindowFlags(
-				Qt.FramelessWindowHint | 
+				Qt.FramelessWindowHint |
 				Qt.WindowStaysOnTopHint |
 				Qt.WindowDoesNotAcceptFocus
 			)
-			
+
 			# Set fullscreen size
 			self.screen_geometry = QApplication.desktop().screenGeometry()
 			self.setFixedSize(self.screen_geometry.width(), self.screen_geometry.height())
-			
+
 			# Calculate content positioning
 			self.content_x = (self.screen_geometry.width() - self.orig_width) // 2
 			self.content_y = 20  # 20px from top
 		else:
 			# For X11, use the original approach
 			self.setWindowFlags(
-				Qt.FramelessWindowHint | 
-				Qt.WindowStaysOnTopHint | 
+				Qt.FramelessWindowHint |
+				Qt.WindowStaysOnTopHint |
 				Qt.X11BypassWindowManagerHint |
 				Qt.Tool |
 				Qt.ToolTip
@@ -85,13 +83,13 @@ class OsdWidget(QWidget):
 			self.setFixedSize(width, height)
 			self.content_x = 0
 			self.content_y = 0
-		
+
 		# Enable transparency
 		self.setAttribute(Qt.WA_TranslucentBackground)
-		
+
 		# Position window at the top center of the screen
 		self.position_window()
-		
+
 		# Load logo if available
 		self.logo_pixmap = None
 		if channel_info["logo"]:
@@ -99,12 +97,12 @@ class OsdWidget(QWidget):
 
 		if self.is_wayland:
 			self.setAttribute(Qt.WA_TransparentForMouseEvents)
-	
+
 	def position_window(self):
 		if self.is_wayland:
 			# For Wayland, we just position at 0,0 (fullscreen)
 			self.move(0, 0)
-			
+
 			# Ensure window stays on top
 			self.stay_on_top_timer = QTimer(self)
 			self.stay_on_top_timer.timeout.connect(lambda: self.raise_())
@@ -115,12 +113,12 @@ class OsdWidget(QWidget):
 			x = (screen_geometry.width() - self.orig_width) // 2
 			y = 20  # 20px from top
 			self.setGeometry(x, y, self.orig_width, self.orig_height)
-			
+
 			# X11 specific window hints
 			self.setAttribute(Qt.WA_X11NetWmWindowTypeNotification)
 			QTimer.singleShot(100, lambda: self.move(x, y))
 			QTimer.singleShot(500, lambda: self.move(x, y))
-			
+
 			# Periodically ensure window stays on top
 			self.stay_on_top_timer = QTimer(self)
 			self.stay_on_top_timer.timeout.connect(lambda: self.raise_())
@@ -137,11 +135,11 @@ class OsdWidget(QWidget):
 					self.update()  # Trigger repaint
 		except Exception as e:
 			print(f"Failed to load logo: {e}")
-	
-	def paintEvent(self, event):
+
+	def paintEvent(self, a0):
 		painter = QPainter(self)
 		painter.setRenderHint(QPainter.Antialiasing)
-		
+
 		if self.is_wayland:
 			# For Wayland, we're drawing the content in the right position on a fullscreen widget
 			self.draw_osd_content(painter, self.content_x, self.content_y)
@@ -152,20 +150,19 @@ class OsdWidget(QWidget):
 		# Create a path for rounded rectangle background
 		path = QPainterPath()
 		path.addRoundedRect(
-			x_offset, y_offset, 
-			self.orig_width, self.orig_height, 
+			x_offset, y_offset,
+			self.orig_width, self.orig_height,
 			self.corner_radius, self.corner_radius
 		)
-		
+
 		# Fill the rounded rectangle with semi-transparent background
 		painter.setPen(Qt.NoPen)
 		painter.setBrush(QColor(0, 50, 100, 200))  # RGBA
 		painter.drawPath(path)
-		
+
 		# Setup text drawing
 		painter.setPen(QColor(255, 255, 255))
-		
-		# Use Fira Sans as originally intended
+
 		try:
 			font = QFont("Fira Sans", 18)
 			font.setBold(True)
@@ -177,13 +174,13 @@ class OsdWidget(QWidget):
 			font.setPointSize(14)
 			font.setBold(False)
 			painter.setFont(font)
-			
+
 			# Draw deinterlace status
 			painter.drawText(x_offset + 20, y_offset + 70, f"Deinterlacing {'on' if self.channel_info['deinterlace'] else 'off'}")
-			
+
 			# Draw latency mode
 			painter.drawText(x_offset + 20, y_offset + 100, f"{'Low' if self.channel_info['low_latency'] else 'High'} latency")
-			
+
 			# Draw codec badges if available
 			if self.video_codec:
 				self.draw_badge(painter, self.video_codec, x_offset + 80, y_offset + self.orig_height - 40)
@@ -194,7 +191,7 @@ class OsdWidget(QWidget):
 			# Draw logo if available
 			if self.logo_pixmap:
 				painter.drawPixmap(x_offset + self.orig_width - 100, y_offset + 20, self.logo_pixmap)
-				
+
 		except Exception as e:
 			print(f"Error in painting: {e}")
 			import traceback
@@ -203,38 +200,38 @@ class OsdWidget(QWidget):
 	def draw_badge(self, painter, text, x, y):
 		# Save current painter state
 		painter.save()
-		
+
 		# Draw rounded badge
 		painter.setPen(QPen(QColor(255, 255, 255, 255), 2))
 		painter.setBrush(Qt.NoBrush)
-		
+
 		# Use QPainterPath for consistent rounded corners
 		badge_path = QPainterPath()
 		badge_path.addRoundedRect(x, y, 48, 20, 7, 7)
 		painter.drawPath(badge_path)
-		
+
 		# Draw text
 		painter.setPen(QColor(255, 255, 255))
 		font = painter.font()
 		font.setBold(True)
 		font.setPointSize(8)
 		painter.setFont(font)
-		
+
 		# Center text in badge
 		font_metrics = painter.fontMetrics()
 		text_width = font_metrics.width(text)
 		text_height = font_metrics.height()
-		
+
 		# We need to use integer coordinates for drawText, not floats
 		text_x = int(x + (48 - text_width) / 2)
 		text_y = int(y + text_height)
-		
+
 		# Use the int, int, string version of drawText
 		painter.drawText(text_x, text_y, text)
-		
+
 		# Restore painter state
 		painter.restore()
-	
+
 	def update_codecs(self, video_codec, audio_codec, video_res, interlaced):
 		if video_codec:
 			self.video_codec = video_codec
@@ -256,14 +253,14 @@ class OsdWidget(QWidget):
 	def start_close_timer(self, seconds=5):
 		"""
 		Starts a timer to close the widget after the specified number of seconds.
-	
+
 		Parameters:
 		seconds (int): Number of seconds before closing the widget (default: 3)
 		"""
 		# Cancel any existing close timer
 		if hasattr(self, 'close_timer') and self.close_timer.isActive():
 			self.close_timer.stop()
-	
+
 		# Create and start a new timer
 		self.close_timer = QTimer(self)
 		self.close_timer.setSingleShot(True)
@@ -276,7 +273,7 @@ def qt_process():
 	"""Run Qt application in a separate process"""
 	from PyQt5.QtWidgets import QApplication
 	from PyQt5.QtCore import QTimer
-	
+
 	app = QApplication(sys.argv)
 	osd = None
 
@@ -304,10 +301,10 @@ def qt_process():
 					osd.update_codecs(command['vcodec'], command['acodec'], command['video_res'], command['interlaced'])
 		# Schedule next check
 		QTimer.singleShot(100, check_queue)
-	
+
 	# Start the queue check
 	check_queue()
-	
+
 	# Run Qt event loop
 	app.exec_()
 
@@ -318,7 +315,7 @@ def get_channels():
 		print("Error: IPMPV_M3U_URL not set. Please set this environment variable to the URL of your IPTV list, in M3U format.")
 		exit(1)
 	lines = response.text.splitlines()
-	
+
 	channels = []
 	regex = re.compile(r'tvg-logo="(.*?)".*?group-title="(.*?)"', re.IGNORECASE)
 
@@ -423,33 +420,33 @@ def audio_codec_observer(name, value):
 def play_channel(index):
 	global current_index, vcodec, acodec, video_res, interlaced
 	print(f"\n=== Starting channel change to index {index} ===")
-	
+
 	to_qt_queue.put({
 		'action': 'close_osd'
 	})
 	print("Closed OSD")
-	
+
 	vcodec = None
 	acodec = None
 	current_index = index % len(channels)
 	print(f"Playing channel: {channels[current_index]['name']} ({channels[current_index]['url']})")
-	
+
 	try:
 		player.loadfile("./novideo.png")
 		player.wait_until_playing()
-		
+
 		channel_info = {
 			"name": channels[current_index]["name"],
 			"deinterlace": deinterlace,
 			"low_latency": low_latency,
 			"logo": channels[current_index]["logo"]
 		}
-		
+
 		to_qt_queue.put({
 			'action': 'show_osd',
 			'channel_info': channel_info
 		})
-		
+
 		player.loadfile(channels[current_index]['url'])
 		time.sleep(0.5)
 		player.wait_until_playing()
@@ -470,7 +467,7 @@ def play_channel(index):
 		to_qt_queue.put({
 				'action': 'start_close',
 		})
-		
+
 	except Exception as e:
 		print(f"\033[91mError in play_channel: {str(e)}\033[0m")
 		traceback.print_exc()
@@ -483,7 +480,7 @@ def index():
 	grouped_channels = {}
 	for channel in channels:
 		grouped_channels.setdefault(channel["group"], []).append(channel)
-	
+
 	flat_channel_list = [channel for channel in channels]
 
 	html = f"""
@@ -600,7 +597,7 @@ def index():
 		<h2>All Channels</h2>
 		<div class="group-container">
 	"""
-	
+
 	for group, ch_list in grouped_channels.items():
 		html += f'<div class="group">{group}'
 		for channel in ch_list:
@@ -688,7 +685,7 @@ def play_custom():
 	global current_index
 	current_index = None
 	url = request.args.get("url")
-	
+
 	if not url or not is_valid_url(url):
 		return jsonify(success=False, error="Invalid or unsupported URL")
 
@@ -727,7 +724,7 @@ def show_osd():
 @app.route("/channel")
 def switch_channel():
 	index = int(request.args.get("index", current_index))
-	play_channel(index)	
+	play_channel(index)
 	return "", 204
 
 @app.route("/toggle_deinterlace")
@@ -823,10 +820,10 @@ def toggle_resolution():
 	return jsonify(res=get_current_resolution())
 
 if __name__ == "__main__":
-	# Start Qt process
-	qt_proc = multiprocessing.Process(target=qt_process)
-	qt_proc.daemon = True
-	qt_proc.start()
+   	# Start Qt process
+   	qt_proc = multiprocessing.Process(target=qt_process)
+   	qt_proc.daemon = True
+   	qt_proc.start()
 
-	# Start Flask in main thread
-	app.run(host="0.0.0.0", port=5000)
+   	# Start Flask in main thread
+   	app.run(host="0.0.0.0", port=5000)
