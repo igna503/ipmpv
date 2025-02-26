@@ -289,7 +289,10 @@ def qt_process():
 					osd.close_widget()
 				# Create new OSD
 				osd = OsdWidget(command['channel_info'])
-				osd.show()
+				if is_wayland:
+					osd.showFullScreen()
+				else:
+					osd.show()
 			elif command['action'] == 'start_close':
 				if osd is not None:
 					osd.start_close_timer()
