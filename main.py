@@ -671,6 +671,12 @@ def serve_maskable_icon():
 	return send_from_directory("static", 'icon512_maskable.png', 
 							  mimetype='image/png')
 
+@app.route('/screenshot1.png')
+def serve_screenshot_1():
+	return send_from_directory("static", 'screenshot1.png', 
+							  mimetype='image/png')
+
+
 if __name__ == "__main__":
    	# Start Qt process
    	qt_proc = multiprocessing.Process(target=qt_process)

@@ -1,5 +1,6 @@
-<!-- Updated HTML/CSS for the index() function in Flask -->
+<!DOCTYPE html>
 <html>
+
 <head>
     <title>IPMPV</title>
     <link rel="manifest" href="/manifest.json">
@@ -17,28 +18,30 @@
             --text-color: white;
             --on-state: #007700;
             --off-state: #770000;
+            --on-border: #229922;
+            --off-border: #992222;
             --border-radius: 15px;
         }
-        
+
         * {
             box-sizing: border-box;
         }
-        
+
         body {
             background-color: var(--primary-bg);
-            font-family: Fira Sans Regular, Arial, sans-serif;
+            font-family: "Fira Sans", Arial, sans-serif;
             color: var(--text-color);
             text-align: center;
             padding: 10px;
             margin: 0;
             line-height: 1.4;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
+
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -49,7 +52,7 @@
             margin-left: auto;
             margin-right: auto;
         }
-        
+
         .channel {
             display: flex;
             align-items: center;
@@ -61,21 +64,21 @@
             width: 100%;
             box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.25);
         }
-        
+
         .channel img {
             width: 40px;
             height: 40px;
             margin-right: 10px;
             object-fit: contain;
         }
-        
+
         .group-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 0 20px;
             width: 100%;
         }
-        
+
         .group {
             display: flex;
             flex-direction: column;
@@ -87,152 +90,158 @@
             padding: 10px;
             background-color: rgba(255, 255, 255, 0.05);
         }
-        
+
         button {
+            font-family: "Fira Sans", Arial, sans-serif;
             padding: 12px;
-            min-width: 120px;
+            min-width: 200px;
             margin: 5px;
             font-size: 16px;
+            border: 1px solid #353535;
             color: var(--text-color);
-            border: none;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
             background-color: var(--secondary-bg);
             border-radius: var(--border-radius);
             cursor: pointer;
         }
-        
+
         /* Control buttons layout */
         .control-button {
             min-width: 200px;
             max-width: 200px;
             flex: 0 1 auto;
         }
-        
+
         .url-input-container {
             width: 100%;
             max-width: 800px;
             margin: 10px auto;
         }
-        
+
         .url-input-group {
             display: flex;
             flex-wrap: nowrap;
             width: 100%;
         }
-        
+
         input {
+            font-family: "Fira Sans", Arial, sans-serif;
             padding: 12px;
             flex-grow: 1;
             margin: 5px 0;
             font-size: 16px;
             color: var(--text-color);
-            border: none;
+            border: 1px solid #444444;
             background-color: var(--input-bg);
             border-radius: var(--border-radius);
             min-width: 200px;
         }
-        
+
         .osd-toggle {
             display: flex;
             justify-content: center;
-            margin: 10px 0;
+            margin: 0;
         }
-        
+
         #osd-on-btn {
             border-radius: var(--border-radius) 0 0 var(--border-radius);
             min-width: 80px;
             margin-right: 0;
+            border-right: 0;
         }
-        
+
         #osd-off-btn {
             border-radius: 0 var(--border-radius) var(--border-radius) 0;
             min-width: 80px;
             margin-left: 0;
+            border-left: 0;
         }
-        
+
         #latency-btn {
             min-width: 60px;
             width: 60px;
             margin: 5px 0;
             border-radius: 0;
             flex: 0 0 auto;
+            border-right: 0;
+            border-left: 0;
         }
-        
+
         .custom-url-input {
             border-radius: var(--border-radius) 0 0 var(--border-radius);
             margin-right: 0;
+            border-right: 0;
         }
-        
+
         .input-btn {
             border-radius: 0 var(--border-radius) var(--border-radius) 0;
             display: block;
             margin: 5px 0;
+            border-left: 0;
         }
-        
+
         button:hover {
             background-color: var(--button-hover);
         }
-        
+
         button:active {
             background-color: var(--button-active);
             transform: scale(0.97);
         }
-        
+
         button.OFF {
             background-color: var(--off-state);
+            border: 1px solid var(--off-border);
         }
-        
+
         button.ON {
             background-color: var(--on-state);
+            border: 1px solid var(--on-border);
         }
-        
+
         /* Sections */
         .section {
             margin: 20px 0;
             padding: 10px;
             border-radius: var(--border-radius);
         }
-        
+
         h1 {
             font-size: 28px;
             margin: 15px 0;
         }
-        
+
         h2 {
             font-size: 22px;
             margin: 15px 0 10px 0;
         }
-        
+
         /* For tablets and larger screens */
         @media (min-width: 768px) {
             .channel button {
                 min-width: 200px;
             }
-            
+
             .control-button {
                 min-width: 200px;
             }
-            
+
             .url-input-group {
                 flex-wrap: nowrap;
             }
-            
-            .custom-url-input {
-                flex-grow: 1;
-            }
-            
+
             .input-btn {
-                min-width: 120px;
+                min-width: 200px;
             }
         }
-        
+
         /* For larger desktops - maintain original spacing */
         @media (min-width: 1200px) {
             .channel img {
                 width: 50px;
                 height: 50px;
             }
-            
+
             button {
                 min-width: 200px;
             }
@@ -240,54 +249,99 @@
 
         /* Mobile touch improvements */
         @media (max-width: 767px) {
-            button, input {
-                padding: 14px;  /* Larger touch targets */
+
+            button,
+            input {
+                padding: 14px;
+                /* Larger touch targets */
                 margin: 8px 4px;
-                width: 100%;
+                width: 90%;
             }
-            
+
+            input {
+                min-width: unset;
+                width: 90%;
+            }
+
+            .section {
+                display: flex;
+                width: 100%;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
             .group-container {
                 grid-template-columns: 1fr;
             }
-            
+
             .controls {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
+            .osd-toggle {
+                width: 85%;
+                margin: 8px 4px;
+                justify-content: center;
+                align-items: center;
+            }
+
             .control-button {
-                width: 100%;
+                width: 90%;
                 max-width: none;
             }
-            
+
             .url-input-group {
-                flex-wrap: wrap;
-            }
-            
-            .custom-url-input {
                 width: 100%;
+                flex-direction: column;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .custom-url-input {
+                width: 90%;
+                min-width: 200px;
+                border-right: 1px solid #444444;
                 border-radius: var(--border-radius);
             }
-            
+
             #latency-btn {
-                width: 100%;
+                width: 90%;
                 border-radius: var(--border-radius);
                 margin-top: 8px;
             }
 
             .input-btn {
-                width: 100%;
+                width: 90%;
                 border-radius: var(--border-radius);
+                border-left: 1px solid #353535;
                 margin-top: 8px;
+            }
+
+            #osd-on-btn {
+                margin-top: 8px;
+                margin-bottom: 8px;
+                margin-left: 4px;
+                min-width: 100px;
+            }
+
+            #osd-off-btn {
+                margin-top: 8px;
+                margin-bottom: 8px;
+                margin-right: 4px;
+                min-width: 100px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Welcome to IPMPV</h1>
         <p>Current Channel: <span id="current-channel">%CURRENT_CHANNEL%</span></p>
-        
+
         <div class="controls">
             <button class="control-button" onclick="stopPlayer()">Stop</button>
             <button id="retroarch-btn" class="%RETROARCH_STATE%" onclick="toggleRetroArch()">
@@ -300,7 +354,7 @@
                 Resolution: <span id="resolution-state">%RESOLUTION%</span>
             </button>
         </div>
-        
+
         <div class="section">
             <h2>Toggle OSD</h2>
             <div class="osd-toggle">
@@ -308,7 +362,7 @@
                 <button id="osd-off-btn" onclick="hideOSD()">off</button>
             </div>
         </div>
-        
+
         <div class="section">
             <h2>Play Custom URL</h2>
             <div class="url-input-container">
@@ -321,24 +375,24 @@
                 </div>
             </div>
         </div>
-        
+
         <h2>All Channels</h2>
         <div class="group-container">
             <!-- Channel groups will be inserted here -->
             %CHANNEL_GROUPS%
         </div>
     </div>
-    
+
     <script>
         // Improve mobile touch experience
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Add active/touch state for all buttons
             const buttons = document.querySelectorAll('button');
             buttons.forEach(button => {
-                button.addEventListener('touchstart', function() {
+                button.addEventListener('touchstart', function () {
                     this.classList.add('touching');
                 });
-                button.addEventListener('touchend', function() {
+                button.addEventListener('touchend', function () {
                     this.classList.remove('touching');
                 });
             });
@@ -346,23 +400,23 @@
             // Auto hide address bar on mobile
             window.scrollTo(0, 1);
         });
-        
+
         function playCustomURL() {
             const url = document.getElementById("custom-url").value;
             if (!url.trim()) return; // Ignore empty input
-            
+
             // Show loading indicator
             const playButton = document.querySelector('.input-btn');
             const originalText = playButton.textContent;
             playButton.textContent = "Loading...";
             playButton.disabled = true;
-            
+
             fetch(`/play_custom?url=${encodeURIComponent(url)}`)
                 .then(response => response.json())
                 .then(data => {
                     playButton.textContent = originalText;
                     playButton.disabled = false;
-                    
+
                     if (data.success) {
                         // Show toast instead of alert on mobile
                         showToast("Now playing: " + url);
@@ -376,7 +430,7 @@
                     showToast("Connection error. Please try again.");
                 });
         }
-        
+
         function toggleLatency() {
             fetch(`/toggle_latency`)
                 .then(response => response.json())
@@ -385,7 +439,7 @@
                     document.getElementById("latency-btn").className = data.state ? "ON" : "OFF";
                 });
         }
-        
+
         function toggleRetroArch() {
             fetch(`/toggle_retroarch`)
                 .then(response => response.json())
@@ -394,7 +448,7 @@
                     document.getElementById("retroarch-btn").className = data.state ? "ON" : "OFF";
                 });
         }
-        
+
         function toggleResolution() {
             fetch(`/toggle_resolution`)
                 .then(response => response.json())
@@ -402,20 +456,20 @@
                     document.getElementById("resolution-state").textContent = data.res;
                 });
         }
-        
+
         function stopPlayer() {
             fetch(`/stop_player`).then(() => window.location.reload());
         }
-        
+
         function changeChannel(index) {
             // Show loading indicator
             const channelButtons = document.querySelectorAll('.channel button');
             channelButtons.forEach(btn => {
                 btn.disabled = true;
             });
-            
+
             showToast("Loading channel...");
-            
+
             fetch(`/channel?index=${index}`)
                 .then(() => window.location.reload())
                 .catch(() => {
@@ -425,7 +479,7 @@
                     showToast("Error loading channel. Try again.");
                 });
         }
-        
+
         function toggleDeinterlace() {
             fetch(`/toggle_deinterlace`)
                 .then(response => response.json())
@@ -434,15 +488,15 @@
                     document.getElementById("deinterlace-btn").className = data.state ? "ON" : "OFF";
                 });
         }
-        
+
         function showOSD() {
             fetch(`/show_osd`).then(response => response.json());
         }
-        
+
         function hideOSD() {
             fetch(`/hide_osd`).then(response => response.json());
         }
-        
+
         // Mobile-friendly toast notification
         function showToast(message) {
             const toast = document.createElement('div');
@@ -458,9 +512,9 @@
             toast.style.borderRadius = '25px';
             toast.style.zIndex = '1000';
             toast.style.maxWidth = '80%';
-            
+
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transition = 'opacity 0.5s ease';
@@ -471,4 +525,5 @@
         }
     </script>
 </body>
+
 </html>

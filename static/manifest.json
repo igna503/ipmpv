@@ -2,6 +2,14 @@
     "theme_color":"#222222",
     "background_color":"#222222",
     "start_url": "/",
+    "screenshots":
+    [
+        {
+            "src": "screenshot1.png",
+            "type": "image/png",
+            "sizes": "1080x2017"
+        }
+    ],
     "icons":
     [
         {
