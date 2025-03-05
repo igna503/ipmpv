@@ -9,8 +9,7 @@ import os
 import time
 import multiprocessing
 
-from flask import request
-from flask import jsonify
+from flask import request, jsonify, send_from_directory
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -486,199 +485,32 @@ def index():
 		grouped_channels.setdefault(channel["group"], []).append(channel)
 
 	flat_channel_list = [channel for channel in channels]
-
-	html = f"""
-	<html>
-	<head>
-		<title>IPMPV</title>
-		<style>
-			body {{ background-color: #111111; font-family: Fira Sans Regular, Arial, sans-serif; color: white; text-align: center; }}
-			.channel {{ display: flex; align-items: center; padding: 5px; }}
-			.channel img {{ width: 50px; height: auto; margin-right: 10px; }}
-			.group-container {{ display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }}
-			.group {{ display: flex; flex-direction: column; margin-top: 20px; font-size: 20px; font-weight: bold; }}
-			button {{
-				padding: 10px;
-				min-width: 200px;
-				margin: 5px;
-				font-size: 16px;
-				color: white;
-				border: none;
-				transition: background-color 0.2s, transform 0.1s;
-				background-color: #222222;
-				border-radius: 15px;
-			}}
-			button.input-btn {{
-				padding: 10px;
-				min-width: 200px;
-				margin: 5px 5px 5px 0;
-				font-size: 16px;
-				color: white;
-				border: none;
-				transition: background-color 0.2s, transform 0.1s;
-				background-color: #222222;
-				border-radius: 0;
-				border-top-right-radius: 15px;
-				border-bottom-right-radius: 15px;
-			}}
-			#latency-btn {{
-				padding: 10px;
-				min-width: 50px;
-				margin: 0;
-				font-size: 16px;
-				color: white;
-				border: none;
-				transition: background-color 0.2s, transform 0.1s;
-				border-radius: 0;
-			}}
-			input {{
-				padding: 10px;
-				min-width: 500px;
-				margin: 5px 0 5px 5px;
-				font-size: 16px;
-				color: white;
-				border: none;
-				transition: background-color 0.2s, transform 0.1s;
-				background-color: #303030;
-				border-top-left-radius: 15px;
-				border-bottom-left-radius: 15px;
-			}}
-			button:hover {{
-				background-color: #444444;
-			}}
-			button:active {{
-				background-color: #666666;
-				transform: scale(0.95);
-			}}
-			button.input-btn:active {{
-				background-color: #666666;
-				transform: none;
-			}}
-			button.OFF {{
- 				background-color: #770000; /* Default OFF color */
-			}}
-			button.ON {{
- 				background-color: #007700; /* Default OFF color */
-			}}
-			#osd-on-btn {{
-				min-width: 100px;
-				margin: 0;
-				border-radius: 0;
-				border-top-left-radius: 15px;
-				border-bottom-left-radius: 15px;
-			}}
-			#osd-off-btn {{
-				min-width: 100px;
-				margin: 0;
-				border-radius: 0;
-				border-top-right-radius: 15px;
-				border-bottom-right-radius: 15px;
-			}}
-		</style>
-	</head>
-	<body>
-		<h1>Welcome to IPMPV</h1>
-		<p>Current Channel: {channels[current_index]['name'] if current_index is not None else "None"}</p>
-		<button onclick="stopPlayer()">Stop</button>
-	"""
-#<button onclick="changeChannel({(current_index - 1) % len(channels)})">Previous</button>
-#<button onclick="changeChannel({(current_index + 1) % len(channels)})">Next</button>
-
-	global deinterlace
-	global low_latency
-	deinterlace_state = "ON" if deinterlace else "OFF"
-	retroarch_state = "ON" if retroarch_p and retroarch_p.poll() is None else "OFF"
-	html += f"""
-		<button id="retroarch-btn" class="{retroarch_state}" onclick="toggleRetroArch()"><span id="retroarch-state">{"Stop RetroArch" if retroarch_p and retroarch_p.poll() is None else "Start RetroArch"}</span></button>
-		<button id="deinterlace-btn" class="{deinterlace_state}" onclick="toggleDeinterlace()">Deinterlacing: <span id="deinterlace-state">{deinterlace_state}</span></button>
-		<button id="resolution-btn" onclick="toggleResolution()">Resolution: <span id="resolution-state">{resolution}</span></button>
-		<h2>Toggle OSD</h2>
-		<button id="osd-on-btn" onclick="showOSD()">on</button><button id="osd-off-btn" onclick="hideOSD()">off</button>
-	"""
-	html += f"""
-		<h2>Play Custom URL</h2>
-		<input type="text" id="custom-url" placeholder="Enter stream URL"><button id="latency-btn" class="{'ON' if low_latency else 'OFF'}" onclick="toggleLatency()"><span id="latency-state">{'Lo' if low_latency else 'Hi'}</span></button><button class="input-btn" onclick="playCustomURL()">Play</button>
-		<h2>All Channels</h2>
-		<div class="group-container">
-	"""
-
+	
+	# Create the channel groups HTML
+	channel_groups_html = ""
 	for group, ch_list in grouped_channels.items():
-		html += f'<div class="group">{group}'
+		channel_groups_html += f'<div class="group">{group}'
 		for channel in ch_list:
 			index = flat_channel_list.index(channel)  # Get correct global index
-			html += f'''
+			channel_groups_html += f'''
 				<div class="channel">
 					<img src="{channel['logo']}" onerror="this.style.display='none'">
 					<button onclick="changeChannel({index})">{channel['name']}</button>
 				</div>
 			'''
-		html += '</div>'
-
-
-	html += """
-		</div>
-		<script>
-			function playCustomURL() {
-					const url = document.getElementById("custom-url").value;
-					if (!url.trim()) return; // Ignore empty input
-					fetch(`/play_custom?url=${encodeURIComponent(url)}`)
-					.then(response => response.json())
-					.then(data => {
-					   	if (data.success) {
-							alert("Now playing: " + url);
-						} else {
-			   					alert("Error: " + data.error);
-					   	}
-					});
-			}
-			function toggleLatency() {
-				fetch(`/toggle_latency`)
-				.then(response => response.json())
-				.then(data => {
-					document.getElementById("latency-state").textContent = data.state ? "Lo" : "Hi";
-					document.getElementById("latency-btn").style.backgroundColor = data.state ? "#007700" : "#770000";
-				});
-			}
-			function toggleRetroArch() {
-				fetch(`/toggle_retroarch`)
-				.then(response => response.json())
-				.then(data => {
-					document.getElementById("retroarch-state").textContent = data.state ? "Stop RetroArch" : "Start RetroArch";
-					document.getElementById("retroarch-btn").style.backgroundColor = data.state ? "#007700" : "#770000";
-				});
-			}
-			function toggleResolution() {
-				fetch(`/toggle_resolution`)
-				.then(response => response.json())
-				.then(data => {
-					document.getElementById("resolution-state").textContent = data.res;
-				});
-			}
-			function stopPlayer() {
-				fetch(`/stop_player`).then(() => window.location.reload());
-			}
-			function changeChannel(index) {
-				fetch(`/channel?index=${index}`).then(() => window.location.reload());
-			}
-			function toggleDeinterlace() {
-				fetch(`/toggle_deinterlace`)
-				.then(response => response.json())
-				.then(data => {
-					document.getElementById("deinterlace-state").textContent = data.state ? "ON" : "OFF";
-					document.getElementById("deinterlace-btn").style.backgroundColor = data.state ? "#007700" : "#770000";
-				});
-			}
-			function showOSD() {
-				fetch(`/show_osd`).then(response => response.json())
-			}
-			function hideOSD() {
-				fetch(`/hide_osd`).then(response => response.json())
-			}
-		</script>
-	</body>
-	</html>
-	"""
-
+		channel_groups_html += '</div>'
+	
+	# Replace placeholders with actual values
+	html = open("templates/index.html").read()
+	html = html.replace("%CURRENT_CHANNEL%", channels[current_index]['name'] if current_index is not None else "None")
+	html = html.replace("%RETROARCH_STATE%", "ON" if retroarch_p and retroarch_p.poll() is None else "OFF")
+	html = html.replace("%RETROARCH_LABEL%", "Stop RetroArch" if retroarch_p and retroarch_p.poll() is None else "Start RetroArch")
+	html = html.replace("%DEINTERLACE_STATE%", "ON" if deinterlace else "OFF")
+	html = html.replace("%RESOLUTION%", resolution)
+	html = html.replace("%LATENCY_STATE%", "ON" if low_latency else "OFF")
+	html = html.replace("%LATENCY_LABEL%", "Lo" if low_latency else "Hi")
+	html = html.replace("%CHANNEL_GROUPS%", channel_groups_html)
+	
 	return html
 
 def is_valid_url(url):
@@ -765,7 +597,7 @@ def toggle_retroarch():
 		print("Launching RetroArch")
 		retroarch_env = os.environ.copy()
 		retroarch_env["MESA_GL_VERSION_OVERRIDE"] = "3.3"
-		retroarch_p = subprocess.Popen(re.split('\s', ipmpv_retroarch_cmd if ipmpv_retroarch_cmd is not None else 'retroarch'), env=retroarch_env)
+		retroarch_p = subprocess.Popen(re.split("\\s", ipmpv_retroarch_cmd if ipmpv_retroarch_cmd is not None else 'retroarch'), env=retroarch_env)
 		return jsonify(state=True)
 
 @app.route("/toggle_latency")
@@ -822,6 +654,22 @@ def toggle_resolution():
 			resolution = get_current_resolution()
 
 	return jsonify(res=get_current_resolution())
+
+@app.route('/manifest.json')
+def serve_manifest():
+	return send_from_directory("static", 'manifest.json', 
+							  mimetype='application/manifest+json')
+
+# Serve icon files from root
+@app.route('/icon512_rounded.png')
+def serve_rounded_icon():
+	return send_from_directory("static", 'icon512_rounded.png', 
+							  mimetype='image/png')
+
+@app.route('/icon512_maskable.png')
+def serve_maskable_icon():
+	return send_from_directory("static", 'icon512_maskable.png', 
+							  mimetype='image/png')
 
 if __name__ == "__main__":
    	# Start Qt process
