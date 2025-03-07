@@ -143,18 +143,44 @@
             margin: 0;
         }
 
-        #osd-on-btn {
+        .leftbtn {
             border-radius: var(--border-radius) 0 0 var(--border-radius);
-            min-width: 80px;
             margin-right: 0;
             border-right: 0;
         }
 
-        #osd-off-btn {
+        .rightbtn {
             border-radius: 0 var(--border-radius) var(--border-radius) 0;
-            min-width: 80px;
             margin-left: 0;
             border-left: 0;
+        }
+
+        .midbtn {
+            border-left: none;
+            border-right: none;
+            margin-left: 0;
+            margin-right: 0;
+            border-radius: 0;
+        }
+
+        #osd-on-btn {
+            min-width: 80px;
+        }
+
+        #osd-off-btn {
+            min-width: 80px;
+        }
+
+        #vol-up-btn {
+            min-width: 60px;
+        }
+
+        #vol-dn-btn {
+            min-width: 60px;
+        }
+
+        #vol-mute-btn {
+            min-width: 80px;
         }
 
         #latency-btn {
@@ -355,11 +381,20 @@
             </button>
         </div>
 
+		<div class="section">
+            <h2>Volume</h2>
+            <div class="osd-toggle">
+                <button class="leftbtn" id="vol-up-btn" onclick="volumeUp()">+</button>
+                <button class="midbtn %MUTE_STATE%" id="vol-mute-btn" onclick="toggleMute()">mute</button>
+                <button class="rightbtn" id="vol-dn-btn" onclick="volumeDown()">-</button>
+            </div>
+        </div>
+
         <div class="section">
             <h2>Toggle OSD</h2>
             <div class="osd-toggle">
-                <button id="osd-on-btn" onclick="showOSD()">on</button>
-                <button id="osd-off-btn" onclick="hideOSD()">off</button>
+                <button class="leftbtn" id="osd-on-btn" onclick="showOSD()">on</button>
+                <button class="rightbtn" id="osd-off-btn" onclick="hideOSD()">off</button>
             </div>
         </div>
 
@@ -496,6 +531,31 @@
         function hideOSD() {
             fetch(`/hide_osd`).then(response => response.json());
         }
+
+		function volumeUp() {
+			fetch(`/volume_up`)
+				.then(response => response.json())
+				.then(data => {
+						showToast("Volume: "+data.volume+"%");
+				});
+		}
+
+		function volumeDown() {
+			fetch(`/volume_down`)
+				.then(response => response.json())
+				.then(data => {
+						showToast("Volume: "+data.volume+"%");
+				});
+		}
+
+		function toggleMute() {
+			fetch(`/toggle_mute`)
+				.then(response => response.json())
+				.then(data => {
+                        muted = data.muted ? "yes" : "no";
+						showToast("Muted: " + muted);
+				});
+		}
 
         // Mobile-friendly toast notification
         function showToast(message) {
