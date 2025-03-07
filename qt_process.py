@@ -48,11 +48,7 @@ def qt_process(to_qt_queue, from_qt_queue):
 					osd.update_codecs(command['vcodec'], command['acodec'], command['video_res'], command['interlaced'])
 			
 			# Volume OSD commands
-			elif command['action'] == 'show_volume_osd':
-				# Close existing volume OSD if present
-				if volume_osd is not None:
-					volume_osd.close_widget()
-				
+			elif command['action'] == 'show_volume_osd' or command['action'] == 'update_volume_osd':
 				# Get volume level and mute state
 				volume_level = command.get('volume_level', 0)
 				is_muted = command.get('is_muted', False)
@@ -60,24 +56,22 @@ def qt_process(to_qt_queue, from_qt_queue):
 				# If muted, override volume display to 0
 				display_volume = 0 if is_muted else volume_level
 				
-				# Create new volume OSD
-				volume_osd = VolumeOsdWidget(display_volume)
-				if is_wayland:
-					volume_osd.showFullScreen()
-				else:
-					volume_osd.show()
-				
-				# Start the close timer
-				volume_osd.start_close_timer()
-			elif command['action'] == 'update_volume_osd':
-				if volume_osd is not None:
-					volume_level = command.get('volume_level', 0)
-					is_muted = command.get('is_muted', False)
-					
-					# If muted, override volume display to 0
-					display_volume = 0 if is_muted else volume_level
-					
+				# Update existing volume OSD if present, otherwise create new one
+				if volume_osd is not None and volume_osd.isVisible():
 					volume_osd.update_volume(display_volume)
+					volume_osd.start_close_timer()
+				else:
+					# Create new volume OSD if none exists or if it's not visible
+					if volume_osd is not None:
+						volume_osd.close_widget()
+					
+					volume_osd = VolumeOsdWidget(display_volume)
+					if is_wayland:
+						volume_osd.showFullScreen()
+					else:
+						volume_osd.show()
+					
+					# Start the close timer
 					volume_osd.start_close_timer()
 			elif command['action'] == 'close_volume_osd':
 				if volume_osd is not None:

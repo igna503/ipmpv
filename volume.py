@@ -168,6 +168,7 @@ class VolumeControl:
 				
 				# Update OSD if queue is available
 				if self.to_qt_queue is not None:
+					# Always use 'show_volume_osd' action to ensure the OSD appears
 					self.to_qt_queue.put({
 						'action': 'show_volume_osd',
 						'volume_level': new_volume,
