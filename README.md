@@ -46,9 +46,13 @@ A Bash script is included to install the following in a virtual environment:
 
 - Python-MPV
 
+- PyAlsaAudio
+
 Additionally, the following applications and libraries are required to be installed in the host system:
 
 - Python >= 3.10
+
+- Alsa
 
 - libmpv
 
