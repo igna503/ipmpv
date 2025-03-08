@@ -144,7 +144,7 @@ class Player:
 		self.player['video-latency-hacks'] = 'yes' if self.low_latency else 'no'
 		self.player['stream-buffer-size'] = '4k' if self.low_latency else '128k'
 		return self.low_latency
-	
+
 	def stop(self):
 		"""Stop the player."""
 		self.player.stop()

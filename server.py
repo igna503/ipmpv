@@ -87,7 +87,35 @@ class IPMPVServer:
 		@self.app.route("/toggle_mute")
 		def toggle_mute():
 			return self._handle_toggle_mute()
-	
+		
+		@self.app.route("/channel_up")
+		def channel_up():
+			return self._handle_channel_up()
+
+		@self.app.route("/channel_down")
+		def channel_down():
+			return self._handle_channel_down()
+
+		@self.app.route('/manifest.json')
+		def serve_manifest():
+			return send_from_directory("static", 'manifest.json', 
+								  mimetype='application/manifest+json')
+
+		@self.app.route('/icon512_rounded.png')
+		def serve_rounded_icon():
+			return send_from_directory("static", 'icon512_rounded.png', 
+								  mimetype='image/png')
+
+		@self.app.route('/icon512_maskable.png')
+		def serve_maskable_icon():
+			return send_from_directory("static", 'icon512_maskable.png', 
+								  mimetype='image/png')
+		
+		@self.app.route('/screenshot1.png')
+		def serve_screenshot_1():
+			return send_from_directory("static", 'screenshot1.png', 
+								  mimetype='image/png')
+
 	def _handle_index(self):
 		"""Handle the index route."""
 		from channels import group_channels
@@ -178,6 +206,28 @@ class IPMPVServer:
 		thread.start()
 		return "", 204
 	
+	def _handle_channel_up(self):
+		"""Handle the channel_up route."""
+		index = self.player.current_index + 1 if self.player.current_index is not None else 0;
+		thread = threading.Thread(
+			target=self.player.play_channel,
+			args=(index,self.channels),
+			daemon=True
+		)
+		thread.start()
+		return "", 204
+	
+	def _handle_channel_down(self):
+		"""Handle the channel_down route."""
+		index = self.player.current_index - 1 if self.player.current_index is not None else -1;
+		thread = threading.Thread(
+			target=self.player.play_channel,
+			args=(index,self.channels),
+			daemon=True
+		)
+		thread.start()
+		return "", 204
+
 	def _handle_toggle_deinterlace(self):
 		"""Handle the toggle_deinterlace route."""
 		state = self.player.toggle_deinterlace()
@@ -219,26 +269,6 @@ class IPMPVServer:
 		self.resolution = change_resolution(self.resolution)
 		return jsonify(res=self.resolution)
 			
-		@self.app.route('/manifest.json')
-		def serve_manifest():
-			return send_from_directory("static", 'manifest.json', 
-									  mimetype='application/manifest+json')
-
-		@self.app.route('/icon512_rounded.png')
-		def serve_rounded_icon():
-			return send_from_directory("static", 'icon512_rounded.png', 
-									  mimetype='image/png')
-
-		@self.app.route('/icon512_maskable.png')
-		def serve_maskable_icon():
-			return send_from_directory("static", 'icon512_maskable.png', 
-									  mimetype='image/png')
-		
-		@self.app.route('/screenshot1.png')
-		def serve_screenshot_1():
-			return send_from_directory("static", 'screenshot1.png', 
-									  mimetype='image/png')
-
 	def _handle_volume_up(self):
 		"""Handle the volume_up route."""
 		if self.volume_control:

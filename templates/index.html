@@ -37,6 +37,74 @@
             line-height: 1.4;
         }
 
+        .dpad-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+        }
+
+        .dpad-container::after {
+            position: absolute;
+            top: 80px;
+            left: 80px;
+            content: "";
+            background-color: var(--secondary-bg);
+            color: white;
+            width: 80px;
+            height: 80px;
+        }
+
+        .dpad-button {
+            position: absolute;
+            min-width: 80px;
+            min-height: 80px;
+            margin: 0;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .dpad-button:hover {
+            background-color: #555;
+        }
+
+        .dpad-button:active {
+            background-color: #777;
+            transform: scale(0.95);
+        }
+
+        #dpad-up {
+            top: 0;
+            left: 80px;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 0;
+        }
+
+        #dpad-right {
+            top: 80px;
+            right: 0;
+            border-radius: 0 10px 10px 0;
+            border-left: 0;
+        }
+
+        #dpad-down {
+            bottom: 0;
+            left: 80px;
+            border-radius: 0 0 10px 10px;
+            border-top: 0;
+        }
+
+        #dpad-left {
+            top: 80px;
+            left: 0;
+            border-radius: 10px 0 0 10px;
+            border-right: 0;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -229,6 +297,9 @@
         .section {
             margin: 20px 0;
             padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             border-radius: var(--border-radius);
         }
 
@@ -276,7 +347,7 @@
         /* Mobile touch improvements */
         @media (max-width: 767px) {
 
-            button,
+            button:not(.dpad-button,.leftbtn,.rightbtn,.midbtn),
             input {
                 padding: 14px;
                 /* Larger touch targets */
@@ -346,18 +417,9 @@
                 margin-top: 8px;
             }
 
-            #osd-on-btn {
-                margin-top: 8px;
-                margin-bottom: 8px;
-                margin-left: 4px;
-                min-width: 100px;
-            }
-
-            #osd-off-btn {
-                margin-top: 8px;
-                margin-bottom: 8px;
-                margin-right: 4px;
-                min-width: 100px;
+            .leftbtn, .rightbtn, .midbtn {
+                width: 90%;
+                padding: 14px;
             }
         }
     </style>
@@ -367,6 +429,15 @@
     <div class="container">
         <h1>Welcome to IPMPV</h1>
         <p>Current Channel: <span id="current-channel">%CURRENT_CHANNEL%</span></p>
+
+        <div class="section">
+            <div class="dpad-container">
+                <button id="dpad-up" class="dpad-button" onclick="channelUp()">↑</button>
+                <button id="dpad-right" class="dpad-button" onclick="volumeUp()">→</button>
+                <button id="dpad-down" class="dpad-button" onclick="channelDown()">↓</button>
+                <button id="dpad-left" class="dpad-button" onclick="volumeDown()">←</button>
+            </div>
+        </div>
 
         <div class="controls">
             <button class="control-button" onclick="stopPlayer()">Stop</button>
@@ -381,12 +452,12 @@
             </button>
         </div>
 
-		<div class="section">
+        <div class="section">
             <h2>Volume</h2>
             <div class="osd-toggle">
-                <button class="leftbtn" id="vol-up-btn" onclick="volumeUp()">+</button>
+                <button class="leftbtn" id="vol-up-btn" onclick="volumeDown()">-</button>
                 <button class="midbtn %MUTE_STATE%" id="vol-mute-btn" onclick="toggleMute()">mute</button>
-                <button class="rightbtn" id="vol-dn-btn" onclick="volumeDown()">-</button>
+                <button class="rightbtn" id="vol-dn-btn" onclick="volumeUp()">+</button>
             </div>
         </div>
 
@@ -532,30 +603,42 @@
             fetch(`/hide_osd`).then(response => response.json());
         }
 
-		function volumeUp() {
-			fetch(`/volume_up`)
-				.then(response => response.json())
-				.then(data => {
-						showToast("Volume: "+data.volume+"%");
-				});
-		}
+        function volumeUp() {
+            fetch(`/volume_up`)
+                .then(response => response.json())
+                .then(data => {
+                    showToast("Volume: " + data.volume + "%");
+                });
+        }
 
-		function volumeDown() {
-			fetch(`/volume_down`)
-				.then(response => response.json())
-				.then(data => {
-						showToast("Volume: "+data.volume+"%");
-				});
-		}
+        function volumeDown() {
+            fetch(`/volume_down`)
+                .then(response => response.json())
+                .then(data => {
+                    showToast("Volume: " + data.volume + "%");
+                });
+        }
 
-		function toggleMute() {
-			fetch(`/toggle_mute`)
-				.then(response => response.json())
-				.then(data => {
-                        muted = data.muted ? "yes" : "no";
-						showToast("Muted: " + muted);
-				});
-		}
+        function toggleMute() {
+            fetch(`/toggle_mute`)
+                .then(response => response.json())
+                .then(data => {
+                    muted = data.muted ? "yes" : "no";
+                    showToast("Muted: " + muted);
+                });
+        }
+
+        function channelUp() {
+            showToast("Loading channel...");
+            fetch(`/channel_up`)
+                .then(() => window.location.reload())
+        }
+
+        function channelDown() {
+            showToast("Loading channel...");
+            fetch(`/channel_down`)
+                .then(() => window.location.reload())
+        }
 
         // Mobile-friendly toast notification
         function showToast(message) {
