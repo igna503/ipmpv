@@ -67,6 +67,7 @@ Additionally, the following applications and libraries are required to be instal
 - IPMPV_M3U_URL: The URL of your M3U playlist. Default: None
 - IPMPV_CORNER_RADIUS: Corner radius of the OSD. Set to 0 for sharp edges. Default: 15
 - IPMPV_RETROARCH_CMD: Your custom RetroArch command, if any. Default: 'retroarch'
+- IPMPV_HWDEC: Hardware decoding device to be passed along to MPV, e.g. vaapi. Default: 'auto-safe'
 
 ## Coming Soon
 
