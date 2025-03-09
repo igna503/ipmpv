@@ -5,7 +5,7 @@ import mpv
 import threading
 import time
 import traceback
-from utils import hwdec
+from utils import hwdec, ao
 
 class Player:
 	"""MPV player wrapper with IPMPV-specific functionality."""
@@ -17,6 +17,7 @@ class Player:
 			log_handler=self.error_check,
 			vo='gpu',
 			hwdec=hwdec if hwdec is not None else 'auto-safe',
+            ao=ao if ao is not None else 'alsa',
 			demuxer_lavf_o='reconnect=1',
 			deinterlace='no',
 			keepaspect='no',
