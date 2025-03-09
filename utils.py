@@ -10,6 +10,7 @@ is_wayland = "WAYLAND_DISPLAY" in os.environ
 osd_corner_radius = os.environ.get("IPMPV_CORNER_RADIUS")
 ipmpv_retroarch_cmd = os.environ.get("IPMPV_RETROARCH_CMD")
 m3u_url = os.environ.get('IPMPV_M3U_URL')
+hwdec = os.environ.get('IPMPV_HWDEC')
 
 def setup_environment():
     """Set up environment variables."""

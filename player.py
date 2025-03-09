@@ -5,6 +5,7 @@ import mpv
 import threading
 import time
 import traceback
+from utils import hwdec
 
 class Player:
 	"""MPV player wrapper with IPMPV-specific functionality."""
@@ -15,7 +16,7 @@ class Player:
 		self.player = mpv.MPV(
 			log_handler=self.error_check,
 			vo='gpu',
-			hwdec='auto-safe',
+			hwdec=hwdec if hwdec is not None else 'auto-safe',
 			demuxer_lavf_o='reconnect=1',
 			deinterlace='no',
 			keepaspect='no',
@@ -44,7 +45,7 @@ class Player:
 	def error_check(self, loglevel, component, message):
 		"""Check for errors in MPV logs."""
 		print(f"[{loglevel}] {component}: {message}")
-		if loglevel == 'error' and (component == 'ffmpeg' or component == 'cplayer') and 'Failed' in message:
+		if loglevel == 'error' and (component == 'ffmpeg' or component == 'cplayer') and 'Failed to recognize file format' in message:
 			self.player.loadfile("./nosignal.png")
 			self.to_qt_queue.put({
 				'action': 'start_close'
@@ -142,7 +143,7 @@ class Player:
 		self.player['video-sync'] = 'audio'
 		self.player['interpolation'] = 'no'
 		self.player['video-latency-hacks'] = 'yes' if self.low_latency else 'no'
-		self.player['stream-buffer-size'] = '4k' if self.low_latency else '128k'
+		self.player['stream-buffer-size'] = '4k' if self.low_latency else '512k'
 		return self.low_latency
 
 	def stop(self):
