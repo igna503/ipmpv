@@ -11,10 +11,10 @@ from utils import is_valid_url, change_resolution, get_current_resolution, is_wa
 
 class IPMPVServer:
 	"""Flask server for IPMPV web interface."""
-	
+
 	def __init__(self, channels, player, to_qt_queue, from_qt_queue, resolution, ipmpv_retroarch_cmd, volume_control=None):
 		"""Initialize the server."""
-		self.app = flask.Flask(__name__, 
+		self.app = flask.Flask(__name__,
 							  static_folder='static',
 							  template_folder='templates')
 		self.channels = channels
@@ -29,49 +29,49 @@ class IPMPVServer:
 		# Register routes
 		self._register_routes()
 
-		
+
 	def run(self, host="0.0.0.0", port=5000):
 		"""Run the Flask server."""
-		self.app.run(host=host, port=port)	
+		self.app.run(host=host, port=port)
 	def _register_routes(self):
 		"""Register Flask routes."""
-		
+
 		@self.app.route("/")
 		def index():
 			return self._handle_index()
-		
+
 		@self.app.route("/play_custom")
 		def play_custom():
 			return self._handle_play_custom()
-		
+
 		@self.app.route("/hide_osd")
 		def hide_osd():
 			return self._handle_hide_osd()
-		
+
 		@self.app.route("/show_osd")
 		def show_osd():
 			return self._handle_show_osd()
-		
+
 		@self.app.route("/channel")
 		def switch_channel():
 			return self._handle_switch_channel()
-		
+
 		@self.app.route("/toggle_deinterlace")
 		def toggle_deinterlace():
 			return self._handle_toggle_deinterlace()
-		
+
 		@self.app.route("/stop_player")
 		def stop_player():
 			return self._handle_stop_player()
-		
+
 		@self.app.route("/toggle_retroarch")
 		def toggle_retroarch():
 			return self._handle_toggle_retroarch()
-		
+
 		@self.app.route("/toggle_latency")
 		def toggle_latency():
 			return self._handle_toggle_latency()
-		
+
 		@self.app.route("/toggle_resolution")
 		def toggle_resolution():
 			return self._handle_toggle_resolution()
@@ -87,7 +87,7 @@ class IPMPVServer:
 		@self.app.route("/toggle_mute")
 		def toggle_mute():
 			return self._handle_toggle_mute()
-		
+
 		@self.app.route("/channel_up")
 		def channel_up():
 			return self._handle_channel_up()
@@ -98,31 +98,36 @@ class IPMPVServer:
 
 		@self.app.route('/manifest.json')
 		def serve_manifest():
-			return send_from_directory("static", 'manifest.json', 
+			return send_from_directory("static", 'manifest.json',
 								  mimetype='application/manifest+json')
 
 		@self.app.route('/icon512_rounded.png')
 		def serve_rounded_icon():
-			return send_from_directory("static", 'icon512_rounded.png', 
+			return send_from_directory("static", 'icon512_rounded.png',
 								  mimetype='image/png')
 
 		@self.app.route('/icon512_maskable.png')
 		def serve_maskable_icon():
-			return send_from_directory("static", 'icon512_maskable.png', 
+			return send_from_directory("static", 'icon512_maskable.png',
 								  mimetype='image/png')
-		
+
 		@self.app.route('/screenshot1.png')
 		def serve_screenshot_1():
-			return send_from_directory("static", 'screenshot1.png', 
+			return send_from_directory("static", 'screenshot1.png',
 								  mimetype='image/png')
+
+		@self.app.route('/favicon.ico')
+		def serve_favicon():
+			return send_from_directory("static", 'favicon.ico',
+								  mimetype='image/vnd.microsoft.icon')
 
 	def _handle_index(self):
 		"""Handle the index route."""
 		from channels import group_channels
-		
+
 		grouped_channels = group_channels(self.channels)
 		flat_channel_list = [channel for channel in self.channels]
-		
+
 		# Create the channel groups HTML
 		channel_groups_html = ""
 		for group, ch_list in grouped_channels.items():
@@ -136,24 +141,24 @@ class IPMPVServer:
 					</div>
 				'''
 			channel_groups_html += '</div>'
-		
+
 		# Replace placeholders with actual values
 		html = open("templates/index.html").read()
-		html = html.replace("%CURRENT_CHANNEL%", 
-						   self.channels[self.player.current_index]['name'] 
+		html = html.replace("%CURRENT_CHANNEL%",
+						   self.channels[self.player.current_index]['name']
 						   if self.player.current_index is not None else "None")
-		html = html.replace("%RETROARCH_STATE%", 
+		html = html.replace("%RETROARCH_STATE%",
 						   "ON" if self.retroarch_p and self.retroarch_p.poll() is None else "OFF")
-		html = html.replace("%RETROARCH_LABEL%", 
+		html = html.replace("%RETROARCH_LABEL%",
 						   "Stop RetroArch" if self.retroarch_p and self.retroarch_p.poll() is None else "Start RetroArch")
 		html = html.replace("%DEINTERLACE_STATE%", "ON" if self.player.deinterlace else "OFF")
 		html = html.replace("%RESOLUTION%", self.resolution)
 		html = html.replace("%LATENCY_STATE%", "ON" if self.player.low_latency else "OFF")
 		html = html.replace("%LATENCY_LABEL%", "Lo" if self.player.low_latency else "Hi")
 		html = html.replace("%CHANNEL_GROUPS%", channel_groups_html)
-		
+
 		return html
-	
+
 	def _handle_play_custom(self):
 		"""Handle the play_custom route."""
 		url = request.args.get("url")
@@ -164,14 +169,14 @@ class IPMPVServer:
 		self.player.player.loadfile(url)
 		self.player.current_index = None
 		return jsonify(success=True)
-	
+
 	def _handle_hide_osd(self):
 		"""Handle the hide_osd route."""
 		self.to_qt_queue.put({
 			'action': 'close_osd',
 		})
 		return "", 204
-	
+
 	def _handle_show_osd(self):
 		"""Handle the show_osd route."""
 		if self.player.current_index is not None:
@@ -193,7 +198,7 @@ class IPMPVServer:
 				'interlaced': self.player.interlaced
 			})
 		return "", 204
-	
+
 	def _handle_switch_channel(self):
 		"""Handle the switch_channel route."""
 		self.player.stop()
@@ -205,7 +210,7 @@ class IPMPVServer:
 		)
 		thread.start()
 		return "", 204
-	
+
 	def _handle_channel_up(self):
 		"""Handle the channel_up route."""
 		index = self.player.current_index + 1 if self.player.current_index is not None else 0;
@@ -216,7 +221,7 @@ class IPMPVServer:
 		)
 		thread.start()
 		return "", 204
-	
+
 	def _handle_channel_down(self):
 		"""Handle the channel_down route."""
 		index = self.player.current_index - 1 if self.player.current_index is not None else -1;
@@ -232,7 +237,7 @@ class IPMPVServer:
 		"""Handle the toggle_deinterlace route."""
 		state = self.player.toggle_deinterlace()
 		return jsonify(state=state)
-	
+
 	def _handle_stop_player(self):
 		"""Handle the stop_player route."""
 		self.to_qt_queue.put({
@@ -240,7 +245,7 @@ class IPMPVServer:
 		})
 		self.player.stop()
 		return "", 204
-	
+
 	def _handle_toggle_retroarch(self):
 		"""Handle the toggle_retroarch route."""
 		retroarch_pid = subprocess.run(["pgrep", "-fx", "retroarch"], stdout=subprocess.PIPE).stdout.strip()
@@ -254,21 +259,21 @@ class IPMPVServer:
 			print("Launching RetroArch")
 			retroarch_env = os.environ.copy()
 			retroarch_env["MESA_GL_VERSION_OVERRIDE"] = "3.3"
-			self.retroarch_p = subprocess.Popen(re.split("\\s", self.ipmpv_retroarch_cmd 
-													   if self.ipmpv_retroarch_cmd is not None 
+			self.retroarch_p = subprocess.Popen(re.split("\\s", self.ipmpv_retroarch_cmd
+													   if self.ipmpv_retroarch_cmd is not None
 													   else 'retroarch'), env=retroarch_env)
 			return jsonify(state=True)
-	
+
 	def _handle_toggle_latency(self):
 		"""Handle the toggle_latency route."""
 		state = self.player.toggle_latency()
 		return jsonify(state=state)
-	
+
 	def _handle_toggle_resolution(self):
 		"""Handle the toggle_resolution route."""
 		self.resolution = change_resolution(self.resolution)
 		return jsonify(res=self.resolution)
-			
+
 	def _handle_volume_up(self):
 		"""Handle the volume_up route."""
 		if self.volume_control:
@@ -286,7 +291,7 @@ class IPMPVServer:
 			new_volume = self.volume_control.volume_down(step)
 			return jsonify(volume=new_volume, muted=self.volume_control.is_muted())
 		return jsonify(error="Volume control not available"), 404
-	
+
 	def _handle_toggle_mute(self):
 		"""Handle the toggle_mute route."""
 		if self.volume_control:
@@ -294,7 +299,7 @@ class IPMPVServer:
 			volume = self.volume_control.get_volume()
 			return jsonify(muted=is_muted, volume=volume)
 		return jsonify(error="Volume control not available"), 404
-	
+
 	def _handle_get_volume(self):
 		"""Handle the get_volume route."""
 		if self.volume_control:
