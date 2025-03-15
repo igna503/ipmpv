@@ -2,697 +2,703 @@
 <html>
 
 <head>
-    <title>IPMPV</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        :root {
-            --primary-bg: #111111;
-            --secondary-bg: #282828;
-            --input-bg: #303030;
-            --button-hover: #444444;
-            --button-active: #666666;
-            --text-color: white;
-            --on-state: #007700;
-            --off-state: #770000;
-            --on-border: #229922;
-            --off-border: #992222;
-            --border-radius: 15px;
-        }
+	<title>IPMPV</title>
+	<link rel="manifest" href="/manifest.json">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<style>
+		:root {
+			--primary-bg: #111111;
+			--secondary-bg: #282828;
+			--input-bg: #303030;
+			--button-hover: #444444;
+			--button-active: #666666;
+			--text-color: white;
+			--on-state: #007700;
+			--off-state: #770000;
+			--on-border: #229922;
+			--off-border: #992222;
+			--border-radius: 15px;
+		}
 
-        * {
-            box-sizing: border-box;
-        }
+		* {
+			box-sizing: border-box;
+		}
 
-        body {
-            background-color: var(--primary-bg);
-            font-family: "Fira Sans", Arial, sans-serif;
-            color: var(--text-color);
-            text-align: center;
-            padding: 10px;
-            margin: 0;
-            line-height: 1.4;
-        }
+		body {
+			background-color: var(--primary-bg);
+			font-family: "Fira Sans", Arial, sans-serif;
+			color: var(--text-color);
+			text-align: center;
+			padding: 10px;
+			margin: 0;
+			line-height: 1.4;
+		}
 
-        .dpad-container {
-            position: relative;
-            width: 240px;
-            height: 240px;
-        }
+		.dpad-container {
+			position: relative;
+			width: 240px;
+			height: 240px;
+		}
 
-        .dpad-container::after {
-            position: absolute;
-            top: 80px;
-            left: 80px;
-            content: "";
-            background-color: var(--secondary-bg);
-            color: white;
-            width: 80px;
-            height: 80px;
-        }
+		.dpad-container::after {
+			position: absolute;
+			top: 80px;
+			left: 80px;
+			content: "";
+			background-color: var(--secondary-bg);
+			color: white;
+			width: 80px;
+			height: 80px;
+		}
 
-        .dpad-button {
-            position: absolute;
-            min-width: 80px;
-            min-height: 80px;
-            margin: 0;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.2s, transform 0.1s;
-        }
+		.dpad-button {
+			position: absolute;
+			min-width: 80px;
+			min-height: 80px;
+			margin: 0;
+			color: white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			user-select: none;
+			transition: background-color 0.2s, transform 0.1s;
+		}
 
-        .dpad-button:hover {
-            background-color: #555;
-        }
+		.dpad-button:hover {
+			background-color: #555;
+		}
 
-        .dpad-button:active {
-            background-color: #777;
-            transform: scale(0.95);
-        }
+		.dpad-button:active {
+			background-color: #777;
+			transform: scale(0.95);
+		}
 
-        #dpad-up {
-            top: 0;
-            left: 80px;
-            border-radius: 10px 10px 0 0;
-            border-bottom: 0;
-        }
+		#dpad-up {
+			top: 0;
+			left: 80px;
+			border-radius: 10px 10px 0 0;
+			border-bottom: 0;
+		}
 
-        #dpad-right {
-            top: 80px;
-            right: 0;
-            border-radius: 0 10px 10px 0;
-            border-left: 0;
-        }
+		#dpad-right {
+			top: 80px;
+			right: 0;
+			border-radius: 0 10px 10px 0;
+			border-left: 0;
+		}
 
-        #dpad-down {
-            bottom: 0;
-            left: 80px;
-            border-radius: 0 0 10px 10px;
-            border-top: 0;
-        }
+		#dpad-down {
+			bottom: 0;
+			left: 80px;
+			border-radius: 0 0 10px 10px;
+			border-top: 0;
+		}
 
-        #dpad-left {
-            top: 80px;
-            left: 0;
-            border-radius: 10px 0 0 10px;
-            border-right: 0;
-        }
+		#dpad-left {
+			top: 80px;
+			left: 0;
+			border-radius: 10px 0 0 10px;
+			border-right: 0;
+		}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+		}
 
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            max-width: 90%;
-            margin-left: auto;
-            margin-right: auto;
-        }
+		.controls {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 10px;
+			margin: 15px 0;
+			max-width: 90%;
+			margin-left: auto;
+			margin-right: auto;
+		}
 
-        .channel {
-            display: flex;
-            align-items: center;
-            padding: 5px;
-            width: 100%;
-        }
+		.channel {
+			display: flex;
+			align-items: center;
+			padding: 5px;
+			width: 100%;
+		}
 
-        .channel button {
-            width: 100%;
-            box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.25);
-        }
+		.channel button {
+			width: 100%;
+			box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.25);
+		}
 
-        .channel img {
-            width: 40px;
-            height: 40px;
-            margin-right: 10px;
-            object-fit: contain;
-        }
+		.channel img {
+			width: 40px;
+			height: 40px;
+			margin-right: 10px;
+			object-fit: contain;
+		}
 
-        .group-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 0 20px;
-            width: 100%;
-        }
+		.group-container {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+			gap: 0 20px;
+			width: 100%;
+		}
 
-        .group {
-            display: flex;
-            flex-direction: column;
-            margin: 20px 8px 8px 0;
-            font-size: 18px;
-            font-weight: bold;
-            border: 1px solid #333;
-            border-radius: var(--border-radius);
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.05);
-        }
+		.group {
+			display: flex;
+			flex-direction: column;
+			margin: 20px 8px 8px 0;
+			font-size: 18px;
+			font-weight: bold;
+			border: 1px solid #333;
+			border-radius: var(--border-radius);
+			padding: 10px;
+			background-color: rgba(255, 255, 255, 0.05);
+		}
 
-        button {
-            font-family: "Fira Sans", Arial, sans-serif;
-            padding: 12px;
-            min-width: 200px;
-            margin: 5px;
-            font-size: 16px;
-            border: 1px solid #353535;
-            color: var(--text-color);
-            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
-            background-color: var(--secondary-bg);
-            border-radius: var(--border-radius);
-            cursor: pointer;
-        }
+		button {
+			font-family: "Fira Sans", Arial, sans-serif;
+			padding: 12px;
+			min-width: 200px;
+			margin: 5px;
+			font-size: 16px;
+			border: 1px solid #353535;
+			color: var(--text-color);
+			transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+			background-color: var(--secondary-bg);
+			border-radius: var(--border-radius);
+			cursor: pointer;
+		}
 
-        /* Control buttons layout */
-        .control-button {
-            min-width: 200px;
-            max-width: 200px;
-            flex: 0 1 auto;
-        }
+		/* Control buttons layout */
+		.control-button {
+			min-width: 200px;
+			max-width: 200px;
+			flex: 0 1 auto;
+		}
 
-        .url-input-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 10px auto;
-        }
+		.url-input-container {
+			width: 100%;
+			max-width: 800px;
+			margin: 10px auto;
+		}
 
-        .url-input-group {
-            display: flex;
-            flex-wrap: nowrap;
-            width: 100%;
-        }
+		.url-input-group {
+			display: flex;
+			flex-wrap: nowrap;
+			width: 100%;
+		}
 
-        input {
-            font-family: "Fira Sans", Arial, sans-serif;
-            padding: 12px;
-            flex-grow: 1;
-            margin: 5px 0;
-            font-size: 16px;
-            color: var(--text-color);
-            border: 1px solid #444444;
-            background-color: var(--input-bg);
-            border-radius: var(--border-radius);
-            min-width: 200px;
-        }
+		input {
+			font-family: "Fira Sans", Arial, sans-serif;
+			padding: 12px;
+			flex-grow: 1;
+			margin: 5px 0;
+			font-size: 16px;
+			color: var(--text-color);
+			border: 1px solid #444444;
+			background-color: var(--input-bg);
+			border-radius: var(--border-radius);
+			min-width: 200px;
+		}
 
-        .osd-toggle {
-            display: flex;
-            justify-content: center;
-            margin: 0;
-        }
+		.osd-toggle {
+			display: flex;
+			justify-content: center;
+			margin: 0;
+		}
 
-        .leftbtn {
-            border-radius: var(--border-radius) 0 0 var(--border-radius);
-            margin-right: 0;
-            border-right: 0;
-        }
+		.leftbtn {
+			border-radius: var(--border-radius) 0 0 var(--border-radius);
+			margin-right: 0;
+			border-right: 0;
+		}
 
-        .rightbtn {
-            border-radius: 0 var(--border-radius) var(--border-radius) 0;
-            margin-left: 0;
-            border-left: 0;
-        }
+		.rightbtn {
+			border-radius: 0 var(--border-radius) var(--border-radius) 0;
+			margin-left: 0;
+			border-left: 0;
+		}
 
-        .midbtn {
-            border-left: none;
-            border-right: none;
-            margin-left: 0;
-            margin-right: 0;
-            border-radius: 0;
-        }
+		.midbtn {
+			border-left: none;
+			border-right: none;
+			margin-left: 0;
+			margin-right: 0;
+			border-radius: 0;
+		}
 
-        #osd-on-btn {
-            min-width: 80px;
-        }
+		#osd-on-btn {
+			min-width: 80px;
+		}
 
-        #osd-off-btn {
-            min-width: 80px;
-        }
+		#osd-off-btn {
+			min-width: 80px;
+		}
 
-        #vol-up-btn {
-            min-width: 60px;
-        }
+		#vol-up-btn {
+			min-width: 60px;
+		}
 
-        #vol-dn-btn {
-            min-width: 60px;
-        }
+		#vol-dn-btn {
+			min-width: 60px;
+		}
 
-        #vol-mute-btn {
-            min-width: 80px;
-        }
+		#vol-mute-btn {
+			min-width: 80px;
+		}
 
-        #latency-btn {
-            min-width: 60px;
-            width: 60px;
-            margin: 5px 0;
-            border-radius: 0;
-            flex: 0 0 auto;
-            border-right: 0;
-            border-left: 0;
-        }
+		#latency-btn {
+			min-width: 60px;
+			width: 60px;
+			margin: 5px 0;
+			border-radius: 0;
+			flex: 0 0 auto;
+			border-right: 0;
+			border-left: 0;
+		}
 
-        .custom-url-input {
-            border-radius: var(--border-radius) 0 0 var(--border-radius);
-            margin-right: 0;
-            border-right: 0;
-        }
+		.custom-url-input {
+			border-radius: var(--border-radius) 0 0 var(--border-radius);
+			margin-right: 0;
+			border-right: 0;
+		}
 
-        .input-btn {
-            border-radius: 0 var(--border-radius) var(--border-radius) 0;
-            display: block;
-            margin: 5px 0;
-            border-left: 0;
-        }
+		.input-btn {
+			border-radius: 0 var(--border-radius) var(--border-radius) 0;
+			display: block;
+			margin: 5px 0;
+			border-left: 0;
+		}
 
-        button:hover {
-            background-color: var(--button-hover);
-        }
+		button:hover {
+			background-color: var(--button-hover);
+		}
 
-        button:active {
-            background-color: var(--button-active);
-            transform: scale(0.97);
-        }
+		button:active {
+			background-color: var(--button-active);
+			transform: scale(0.97);
+		}
 
-        button.OFF {
-            background-color: var(--off-state);
-            border: 1px solid var(--off-border);
-        }
+		button.OFF {
+			background-color: var(--off-state);
+			border: 1px solid var(--off-border);
+		}
 
-        button.ON {
-            background-color: var(--on-state);
-            border: 1px solid var(--on-border);
-        }
+		button.ON {
+			background-color: var(--on-state);
+			border: 1px solid var(--on-border);
+		}
 
-        /* Sections */
-        .section {
-            margin: 20px 0;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-radius: var(--border-radius);
-        }
+		/* Sections */
+		.section {
+			margin: 20px 0;
+			padding: 10px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			border-radius: var(--border-radius);
+		}
 
-        h1 {
-            font-size: 48px;
-            margin: 15px 0;
-        }
+		h1 {
+			font-size: 48px;
+			margin: 15px 0;
+		}
 
-        h2 {
-            font-size: 22px;
-            margin: 15px 0 10px 0;
-        }
+		h2 {
+			font-size: 22px;
+			margin: 15px 0 10px 0;
+		}
 
-        /* For tablets and larger screens */
-        @media (min-width: 768px) {
-            .channel button {
-                min-width: 200px;
-            }
+		/* For tablets and larger screens */
+		@media (min-width: 768px) {
+			.channel button {
+				min-width: 200px;
+			}
 
-            .control-button {
-                min-width: 200px;
-            }
+			.control-button {
+				min-width: 200px;
+			}
 
-            .url-input-group {
-                flex-wrap: nowrap;
-            }
+			.url-input-group {
+				flex-wrap: nowrap;
+			}
 
-            .input-btn {
-                min-width: 200px;
-            }
-        }
+			.input-btn {
+				min-width: 200px;
+			}
+		}
 
-        /* For larger desktops - maintain original spacing */
-        @media (min-width: 1200px) {
-            .channel img {
-                width: 50px;
-                height: 50px;
-            }
+		/* For larger desktops - maintain original spacing */
+		@media (min-width: 1200px) {
+			.channel img {
+				width: 50px;
+				height: 50px;
+			}
 
-            button {
-                min-width: 200px;
-            }
-        }
+			button {
+				min-width: 200px;
+			}
+		}
 
-        /* Mobile touch improvements */
-        @media (max-width: 767px) {
+		/* Mobile touch improvements */
+		@media (max-width: 767px) {
 
-            button:not(.dpad-button,.leftbtn,.rightbtn,.midbtn),
-            input {
-                padding: 14px;
-                /* Larger touch targets */
-                margin: 8px 4px;
-                width: 90%;
-            }
+			button:not(.dpad-button,.leftbtn,.rightbtn,.midbtn),
+			input {
+				padding: 14px;
+				/* Larger touch targets */
+				margin: 8px 4px;
+				width: 90%;
+			}
 
-            input {
-                min-width: unset;
-                width: 90%;
-            }
+			input {
+				min-width: unset;
+				width: 90%;
+			}
 
-            .section {
-                display: flex;
-                width: 100%;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
+			.section {
+				display: flex;
+				width: 100%;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+			}
 
-            .group-container {
-                grid-template-columns: 1fr;
-            }
+			.group-container {
+				grid-template-columns: 1fr;
+			}
 
-            .controls {
-                flex-direction: column;
-                align-items: center;
-            }
+			.controls {
+				flex-direction: column;
+				align-items: center;
+			}
 
-            .osd-toggle {
-                width: 85%;
-                margin: 8px 4px;
-                justify-content: center;
-                align-items: center;
-            }
+			.osd-toggle {
+				width: 85%;
+				margin: 8px 4px;
+				justify-content: center;
+				align-items: center;
+			}
 
-            .control-button {
-                width: 90%;
-                max-width: none;
-            }
+			.control-button {
+				width: 90%;
+				max-width: none;
+			}
 
-            .url-input-group {
-                width: 100%;
-                flex-direction: column;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: center;
-            }
+			.url-input-group {
+				width: 100%;
+				flex-direction: column;
+				flex-wrap: wrap;
+				align-items: center;
+				justify-content: center;
+			}
 
-            .custom-url-input {
-                width: 90%;
-                min-width: 200px;
-                border-right: 1px solid #444444;
-                border-radius: var(--border-radius);
-            }
+			.custom-url-input {
+				width: 90%;
+				min-width: 200px;
+				border-right: 1px solid #444444;
+				border-radius: var(--border-radius);
+			}
 
-            #latency-btn {
-                width: 90%;
-                border-radius: var(--border-radius);
-                margin-top: 8px;
-            }
+			#latency-btn {
+				width: 90%;
+				border-radius: var(--border-radius);
+				margin-top: 8px;
+			}
 
-            .input-btn {
-                width: 90%;
-                border-radius: var(--border-radius);
-                border-left: 1px solid #353535;
-                margin-top: 8px;
-            }
+			.input-btn {
+				width: 90%;
+				border-radius: var(--border-radius);
+				border-left: 1px solid #353535;
+				margin-top: 8px;
+			}
 
-            .leftbtn, .rightbtn, .midbtn {
-                width: 90%;
-                padding: 14px;
-            }
-        }
+			.leftbtn, .rightbtn, .midbtn {
+				width: 90%;
+				padding: 14px;
+			}
+		}
 
-        .language-selector {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 100;
-        }
+		.language-selector {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			z-index: 100;
+		}
 
-        .language-selector select {
-            background-color: var(--secondary-bg);
-            color: var(--text-color);
-            border: 1px solid #444;
-            padding: 5px;
-            border-radius: var(--border-radius);
-        }
-    </style>
+		.language-selector select {
+			background-color: var(--secondary-bg);
+			color: var(--text-color);
+			border: 1px solid #444;
+			padding: 5px;
+			border-radius: var(--border-radius);
+		}
+	</style>
 </head>
 
 <body>
-    <div class="language-selector">
-        <select onchange="changeLanguage(this.value)">
-            %LANGUAGE_SELECTOR%
-        </select>
-    </div>
-    
-    <div class="container">
-        <h1><i>%WELCOME_TEXT%</i></h1>
-        <p>%CURRENT_CHANNEL_LABEL%: <span id="current-channel">%CURRENT_CHANNEL%</span></p>
+	<div class="language-selector">
+		<select onchange="changeLanguage(this.value)">
+			%LANGUAGE_SELECTOR%
+		</select>
+	</div>
+	
+	<div class="container">
+		<h1><i>%WELCOME_TEXT%</i></h1>
+		<p>%CURRENT_CHANNEL_LABEL%: <span id="current-channel">%CURRENT_CHANNEL%</span></p>
 
-        <div class="section">
-            <div class="dpad-container">
-                <button id="dpad-up" class="dpad-button" onclick="channelUp()">↑</button>
-                <button id="dpad-right" class="dpad-button" onclick="volumeUp()">→</button>
-                <button id="dpad-down" class="dpad-button" onclick="channelDown()">↓</button>
-                <button id="dpad-left" class="dpad-button" onclick="volumeDown()">←</button>
-            </div>
-        </div>
+		<div class="section">
+			<div class="dpad-container">
+				<button id="dpad-up" class="dpad-button" onclick="channelUp()">↑</button>
+				<button id="dpad-right" class="dpad-button" onclick="volumeUp()">→</button>
+				<button id="dpad-down" class="dpad-button" onclick="channelDown()">↓</button>
+				<button id="dpad-left" class="dpad-button" onclick="volumeDown()">←</button>
+			</div>
+		</div>
 
-        <div class="controls">
-            <button class="control-button" onclick="stopPlayer()">%STOP_LABEL%</button>
-            <button id="retroarch-btn" class="%RETROARCH_STATE%" onclick="toggleRetroArch()">
-                <span id="retroarch-state">%RETROARCH_LABEL%</span>
-            </button>
-            <button id="deinterlace-btn" class="%DEINTERLACE_STATE%" onclick="toggleDeinterlace()">
-                %DEINTERLACE_LABEL%: <span id="deinterlace-state">%DEINTERLACE_STATE%</span>
-            </button>
-            <button id="resolution-btn" class="control-button" onclick="toggleResolution()">
-                %RESOLUTION_LABEL%: <span id="resolution-state">%RESOLUTION%</span>
-            </button>
-        </div>
+		<div class="controls">
+			<button class="control-button" onclick="stopPlayer()">%STOP_LABEL%</button>
+			<button id="retroarch-btn" class="%RETROARCH_STATE%" onclick="toggleRetroArch()">
+				<span id="retroarch-state">%RETROARCH_LABEL%</span>
+			</button>
+			<button id="deinterlace-btn" class="%DEINTERLACE_STATE%" onclick="toggleDeinterlace()">
+				%DEINTERLACE_LABEL%: <span id="deinterlace-state">%DEINTERLACE_STATE%</span>
+			</button>
+			<button id="resolution-btn" class="control-button" onclick="toggleResolution()">
+				%RESOLUTION_LABEL%: <span id="resolution-state">%RESOLUTION%</span>
+			</button>
+		</div>
 
-        <div class="section">
-            <h2>%VOLUME_LABEL%</h2>
-            <div class="osd-toggle">
-                <button class="leftbtn" id="vol-up-btn" onclick="volumeDown()">-</button>
-                <button class="midbtn %MUTE_STATE%" id="vol-mute-btn" onclick="toggleMute()">%MUTE_LABEL%</button>
-                <button class="rightbtn" id="vol-dn-btn" onclick="volumeUp()">+</button>
-            </div>
-        </div>
+		<div class="section">
+			<h2>%VOLUME_LABEL%</h2>
+			<div class="osd-toggle">
+				<button class="leftbtn" id="vol-up-btn" onclick="volumeDown()">-</button>
+				<button class="midbtn %MUTE_STATE%" id="vol-mute-btn" onclick="toggleMute()">%MUTE_LABEL%</button>
+				<button class="rightbtn" id="vol-dn-btn" onclick="volumeUp()">+</button>
+			</div>
+		</div>
 
-        <div class="section">
-            <h2>%TOGGLE_OSD_LABEL%</h2>
-            <div class="osd-toggle">
-                <button class="leftbtn" id="osd-on-btn" onclick="showOSD()">%ON_LABEL%</button>
-                <button class="rightbtn" id="osd-off-btn" onclick="hideOSD()">%OFF_LABEL%</button>
-            </div>
-        </div>
+		<div class="section">
+			<h2>%TOGGLE_OSD_LABEL%</h2>
+			<div class="osd-toggle">
+				<button class="leftbtn" id="osd-on-btn" onclick="showOSD()">%ON_LABEL%</button>
+				<button class="rightbtn" id="osd-off-btn" onclick="hideOSD()">%OFF_LABEL%</button>
+			</div>
+		</div>
 
-        <div class="section">
-            <h2>%PLAY_CUSTOM_URL_LABEL%</h2>
-            <div class="url-input-container">
-                <div class="url-input-group">
-                    <input type="text" id="custom-url" class="custom-url-input" placeholder="%ENTER_URL_PLACEHOLDER%">
-                    <button id="latency-btn" class="%LATENCY_STATE%" onclick="toggleLatency()">
-                        <span id="latency-state">%LATENCY_LABEL%</span>
-                    </button>
-                    <button class="input-btn" onclick="playCustomURL()">%PLAY_LABEL%</button>
-                </div>
-            </div>
-        </div>
+		<div class="section">
+			<h2>%PLAY_CUSTOM_URL_LABEL%</h2>
+			<div class="url-input-container">
+				<div class="url-input-group">
+					<input type="text" id="custom-url" class="custom-url-input" placeholder="%ENTER_URL_PLACEHOLDER%">
+					<button id="latency-btn" class="%LATENCY_STATE%" onclick="toggleLatency()">
+						<span id="latency-state">%LATENCY_LABEL%</span>
+					</button>
+					<button class="input-btn" onclick="playCustomURL()">%PLAY_LABEL%</button>
+				</div>
+			</div>
+		</div>
 
-        <h2>%ALL_CHANNELS_LABEL%</h2>
-        <div class="group-container">
-            <!-- Channel groups will be inserted here -->
-            %CHANNEL_GROUPS%
-        </div>
-    </div>
+		<h2>%ALL_CHANNELS_LABEL%</h2>
+		<div class="group-container">
+			<!-- Channel groups will be inserted here -->
+			%CHANNEL_GROUPS%
+		</div>
+	</div>
 
-    <script>
-        // Function to change language
-        function changeLanguage(language) {
-            window.location.href = '/switch_language/' + language;
-        }
-        
-        // Improve mobile touch experience
-        document.addEventListener('DOMContentLoaded', function () {
-            // Add active/touch state for all buttons
-            const buttons = document.querySelectorAll('button');
-            buttons.forEach(button => {
-                button.addEventListener('touchstart', function () {
-                    this.classList.add('touching');
-                });
-                button.addEventListener('touchend', function () {
-                    this.classList.remove('touching');
-                });
-            });
+	<script>
+		// Function to change language
+		function changeLanguage(language) {
+			window.location.href = '/switch_language/' + language;
+		}
+		
+		// Improve mobile touch experience
+		document.addEventListener('DOMContentLoaded', function () {
+			// Add active/touch state for all buttons
+			const buttons = document.querySelectorAll('button');
+			buttons.forEach(button => {
+				button.addEventListener('touchstart', function () {
+					this.classList.add('touching');
+				});
+				button.addEventListener('touchend', function () {
+					this.classList.remove('touching');
+				});
+			});
 
-            // Auto hide address bar on mobile
-            window.scrollTo(0, 1);
-        });
+			// Auto hide address bar on mobile
+			window.scrollTo(0, 1);
+		});
 
-        function playCustomURL() {
-            const url = document.getElementById("custom-url").value;
-            if (!url.trim()) return; // Ignore empty input
+		function playCustomURL() {
+			const url = document.getElementById("custom-url").value;
+			if (!url.trim()) return; // Ignore empty input
+		
+			// Show loading indicator
+			const playButton = document.querySelector('.input-btn');
+			const originalText = playButton.textContent;
+			playButton.textContent = "%JS_LOADING%";
+			playButton.disabled = true;
+		
+			fetch(`/play_custom?url=${encodeURIComponent(url)}`)
+				.then(response => response.json())
+				.then(data => {
+					playButton.textContent = originalText;
+					playButton.disabled = false;
+		
+					if (data.success) {
+						// Show toast instead of alert on mobile
+						showToast("%JS_NOW_PLAYING%: " + url);
+					} else {
+						showToast("%JS_ERROR%: " + data.error);
+					}
+				})
+				.catch(error => {
+					playButton.textContent = originalText;
+					playButton.disabled = false;
+					showToast("%JS_CONNECTION_ERROR%");
+				});
+		}
 
-            // Show loading indicator
-            const playButton = document.querySelector('.input-btn');
-            const originalText = playButton.textContent;
-            playButton.textContent = "%LOADING%";
-            playButton.disabled = true;
+		function toggleLatency() {
+			fetch(`/toggle_latency`)
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById("latency-state").textContent = data.state ? "%JS_LATENCY_LOW%" : "%JS_LATENCY_HIGH%";
+					document.getElementById("latency-btn").className = data.state ? "ON" : "OFF";
+				});
+		}
+		
+		function toggleRetroArch() {
+			fetch(`/toggle_retroarch`)
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById("retroarch-state").textContent = data.state ? "%JS_STOP_RETROARCH%" : "%JS_START_RETROARCH%";
+					document.getElementById("retroarch-btn").className = data.state ? "ON" : "OFF";
+				});
+		}
 
-            fetch(`/play_custom?url=${encodeURIComponent(url)}`)
-                .then(response => response.json())
-                .then(data => {
-                    playButton.textContent = originalText;
-                    playButton.disabled = false;
+		function toggleResolution() {
+			fetch(`/toggle_resolution`)
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById("resolution-state").textContent = data.res;
+				});
+		}
 
-                    if (data.success) {
-                        // Show toast instead of alert on mobile
-                        showToast("%NOW_PLAYING%: " + url);
-                    } else {
-                        showToast("%ERROR%: " + data.error);
-                    }
-                })
-                .catch(error => {
-                    playButton.textContent = originalText;
-                    playButton.disabled = false;
-                    showToast("%CONNECTION_ERROR%");
-                });
-        }
+		function stopPlayer() {
+			fetch(`/stop_player`).then(() => window.location.reload());
+		}
 
-        function toggleLatency() {
-            fetch(`/toggle_latency`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("latency-state").textContent = data.state ? "%LATENCY_LOW%" : "%LATENCY_HIGH%";
-                    document.getElementById("latency-btn").className = data.state ? "ON" : "OFF";
-                });
-        }
+		function changeChannel(index) {
+			// Show loading indicator
+			const channelButtons = document.querySelectorAll('.channel button');
+			channelButtons.forEach(btn => {
+				btn.disabled = true;
+			});
+		
+			showToast("%JS_LOADING_CHANNEL%");
+		
+			fetch(`/channel?index=${index}`)
+				.then(() => window.location.reload())
+				.catch(() => {
+					channelButtons.forEach(btn => {
+						btn.disabled = false;
+					});
+					showToast("%JS_ERROR_LOADING_CHANNEL%");
+				});
+		}
+		
+		function toggleDeinterlace() {
+			fetch(`/toggle_deinterlace`)
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById("deinterlace-state").textContent = data.state ? "%JS_ON_LABEL%" : "%JS_OFF_LABEL%";
+					document.getElementById("deinterlace-btn").className = data.state ? "ON" : "OFF";
+				});
+		}
 
-        function toggleRetroArch() {
-            fetch(`/toggle_retroarch`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("retroarch-state").textContent = data.state ? "%STOP_RETROARCH%" : "%START_RETROARCH%";
-                    document.getElementById("retroarch-btn").className = data.state ? "ON" : "OFF";
-                });
-        }
+		function showOSD() {
+			fetch(`/show_osd`).then(response => response.json());
+		}
 
-        function toggleResolution() {
-            fetch(`/toggle_resolution`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("resolution-state").textContent = data.res;
-                });
-        }
+		function hideOSD() {
+			fetch(`/hide_osd`).then(response => response.json());
+		}
 
-        function stopPlayer() {
-            fetch(`/stop_player`).then(() => window.location.reload());
-        }
+		function volumeUp() {
+			fetch(`/volume_up`)
+				.then(response => response.json())
+				.then(data => {
+					// Use a direct string with placeholder for proper rendering
+					let message = "%JS_VOLUME_LEVEL%";
+					message = message.replace("{0}", data.volume);
+					showToast(message);
+				});
+		}
+		
+		function volumeDown() {
+			fetch(`/volume_down`)
+				.then(response => response.json())
+				.then(data => {
+					// Use a direct string with placeholder for proper rendering
+					let message = "%JS_VOLUME_LEVEL%";
+					message = message.replace("{0}", data.volume);
+					showToast(message);
+				});
+		}
+		
+		function toggleMute() {
+			fetch(`/toggle_mute`)
+				.then(response => response.json())
+				.then(data => {
+					let muted = data.muted ? "%JS_MUTED_YES%" : "%JS_MUTED_NO%";
+					showToast(muted);
+				});
+		}
+		
+		function channelUp() {
+			showToast("%JS_LOADING_CHANNEL%");
+			fetch(`/channel_up`)
+				.then(() => window.location.reload())
+		}
+		
+		function channelDown() {
+			showToast("%JS_LOADING_CHANNEL%");
+			fetch(`/channel_down`)
+				.then(() => window.location.reload())
+		}
 
-        function changeChannel(index) {
-            // Show loading indicator
-            const channelButtons = document.querySelectorAll('.channel button');
-            channelButtons.forEach(btn => {
-                btn.disabled = true;
-            });
+		// Mobile-friendly toast notification
+		function showToast(message) {
+			const toast = document.createElement('div');
+			toast.className = 'toast';
+			toast.textContent = message;
+			toast.style.position = 'fixed';
+			toast.style.bottom = '20px';
+			toast.style.left = '50%';
+			toast.style.transform = 'translateX(-50%)';
+			toast.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+			toast.style.color = 'white';
+			toast.style.padding = '12px 20px';
+			toast.style.borderRadius = '25px';
+			toast.style.zIndex = '1000';
+			toast.style.maxWidth = '80%';
 
-            showToast("%LOADING_CHANNEL%");
+			document.body.appendChild(toast);
 
-            fetch(`/channel?index=${index}`)
-                .then(() => window.location.reload())
-                .catch(() => {
-                    channelButtons.forEach(btn => {
-                        btn.disabled = false;
-                    });
-                    showToast("%ERROR_LOADING_CHANNEL%");
-                });
-        }
-
-        function toggleDeinterlace() {
-            fetch(`/toggle_deinterlace`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("deinterlace-state").textContent = data.state ? "%ON_LABEL%" : "%OFF_LABEL%";
-                    document.getElementById("deinterlace-btn").className = data.state ? "ON" : "OFF";
-                });
-        }
-
-        function showOSD() {
-            fetch(`/show_osd`).then(response => response.json());
-        }
-
-        function hideOSD() {
-            fetch(`/hide_osd`).then(response => response.json());
-        }
-
-        function volumeUp() {
-            fetch(`/volume_up`)
-                .then(response => response.json())
-                .then(data => {
-                    showToast("%VOLUME_LEVEL%".replace("{0}", data.volume));
-                });
-        }
-
-        function volumeDown() {
-            fetch(`/volume_down`)
-                .then(response => response.json())
-                .then(data => {
-                    showToast("%VOLUME_LEVEL%".replace("{0}", data.volume));
-                });
-        }
-
-        function toggleMute() {
-            fetch(`/toggle_mute`)
-                .then(response => response.json())
-                .then(data => {
-                    muted = data.muted ? "%MUTED_YES%" : "%MUTED_NO%";
-                    showToast(muted);
-                });
-        }
-
-        function channelUp() {
-            showToast("%LOADING_CHANNEL%");
-            fetch(`/channel_up`)
-                .then(() => window.location.reload())
-        }
-
-        function channelDown() {
-            showToast("%LOADING_CHANNEL%");
-            fetch(`/channel_down`)
-                .then(() => window.location.reload())
-        }
-
-        // Mobile-friendly toast notification
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            toast.style.position = 'fixed';
-            toast.style.bottom = '20px';
-            toast.style.left = '50%';
-            toast.style.transform = 'translateX(-50%)';
-            toast.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-            toast.style.color = 'white';
-            toast.style.padding = '12px 20px';
-            toast.style.borderRadius = '25px';
-            toast.style.zIndex = '1000';
-            toast.style.maxWidth = '80%';
-
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => {
-                    document.body.removeChild(toast);
-                }, 500);
-            }, 3000);
-        }
-    </script>
+			setTimeout(() => {
+				toast.style.opacity = '0';
+				toast.style.transition = 'opacity 0.5s ease';
+				setTimeout(() => {
+					document.body.removeChild(toast);
+				}, 500);
+			}, 3000);
+		}
+	</script>
 </body>
 
 </html>

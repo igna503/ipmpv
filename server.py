@@ -192,6 +192,22 @@ class IPMPVServer:
 		html = html.replace("%ALL_CHANNELS_LABEL%", _("all_channels"))
 		html = html.replace("%STOP_LABEL%", _("stop"))
 		html = html.replace("%LANGUAGE_SELECTOR%", language_selector_html)
+
+		html = html.replace("%JS_LOADING%", _("loading"))
+		html = html.replace("%JS_NOW_PLAYING%", _("now_playing"))
+		html = html.replace("%JS_ERROR%", _("error"))
+		html = html.replace("%JS_CONNECTION_ERROR%", _("connection_error"))
+		html = html.replace("%JS_LOADING_CHANNEL%", _("loading_channel"))
+		html = html.replace("%JS_ERROR_LOADING_CHANNEL%", _("error_loading_channel"))
+		html = html.replace("%JS_VOLUME_LEVEL%", _("volume_level"))
+		html = html.replace("%JS_MUTED_YES%", _("muted_yes"))
+		html = html.replace("%JS_MUTED_NO%", _("muted_no"))
+		html = html.replace("%JS_LATENCY_LOW%", _("latency_low"))
+		html = html.replace("%JS_LATENCY_HIGH%", _("latency_high"))
+		html = html.replace("%JS_STOP_RETROARCH%", _("stop_retroarch"))
+		html = html.replace("%JS_START_RETROARCH%", _("start_retroarch"))
+		html = html.replace("%JS_ON_LABEL%", _("on"))
+		html = html.replace("%JS_OFF_LABEL%", _("off"))
 		
 		return html
 
