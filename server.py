@@ -6,7 +6,7 @@ import re
 import subprocess
 import threading
 import flask
-from flask import request, jsonify, send_from_directory, session, redirect, url_for
+from flask import request, jsonify, send_from_directory, redirect, url_for, make_response
 from localization import localization, _
 from utils import is_valid_url, change_resolution, get_current_resolution, is_wayland, get_or_create_secret_key
 
@@ -26,7 +26,6 @@ class IPMPVServer:
 		self.ipmpv_retroarch_cmd = ipmpv_retroarch_cmd
 		self.retroarch_p = None
 		self.volume_control = volume_control
-		self.app.secret_key = get_or_create_secret_key()
 
 		# Register routes
 		self._register_routes()
@@ -40,8 +39,9 @@ class IPMPVServer:
 
 		@self.app.route("/switch_language/<language>")
 		def switch_language(language):
-			localization.set_language(language)
-			return redirect(request.referrer or url_for('index'))
+			response = make_response(redirect(request.referrer or url_for('index')))
+			localization.set_language(language, response)
+			return response
 
 		@self.app.route("/")
 		def index():
