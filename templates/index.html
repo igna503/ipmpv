@@ -304,7 +304,7 @@
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 48px;
             margin: 15px 0;
         }
 
@@ -422,13 +422,34 @@
                 padding: 14px;
             }
         }
+
+        .language-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+
+        .language-selector select {
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+            border: 1px solid #444;
+            padding: 5px;
+            border-radius: var(--border-radius);
+        }
     </style>
 </head>
 
 <body>
+    <div class="language-selector">
+        <select onchange="changeLanguage(this.value)">
+            %LANGUAGE_SELECTOR%
+        </select>
+    </div>
+    
     <div class="container">
-        <h1>Welcome to IPMPV</h1>
-        <p>Current Channel: <span id="current-channel">%CURRENT_CHANNEL%</span></p>
+        <h1><i>%WELCOME_TEXT%</i></h1>
+        <p>%CURRENT_CHANNEL_LABEL%: <span id="current-channel">%CURRENT_CHANNEL%</span></p>
 
         <div class="section">
             <div class="dpad-container">
@@ -440,49 +461,49 @@
         </div>
 
         <div class="controls">
-            <button class="control-button" onclick="stopPlayer()">Stop</button>
+            <button class="control-button" onclick="stopPlayer()">%STOP_LABEL%</button>
             <button id="retroarch-btn" class="%RETROARCH_STATE%" onclick="toggleRetroArch()">
                 <span id="retroarch-state">%RETROARCH_LABEL%</span>
             </button>
             <button id="deinterlace-btn" class="%DEINTERLACE_STATE%" onclick="toggleDeinterlace()">
-                Deinterlacing: <span id="deinterlace-state">%DEINTERLACE_STATE%</span>
+                %DEINTERLACE_LABEL%: <span id="deinterlace-state">%DEINTERLACE_STATE%</span>
             </button>
             <button id="resolution-btn" class="control-button" onclick="toggleResolution()">
-                Resolution: <span id="resolution-state">%RESOLUTION%</span>
+                %RESOLUTION_LABEL%: <span id="resolution-state">%RESOLUTION%</span>
             </button>
         </div>
 
         <div class="section">
-            <h2>Volume</h2>
+            <h2>%VOLUME_LABEL%</h2>
             <div class="osd-toggle">
                 <button class="leftbtn" id="vol-up-btn" onclick="volumeDown()">-</button>
-                <button class="midbtn %MUTE_STATE%" id="vol-mute-btn" onclick="toggleMute()">mute</button>
+                <button class="midbtn %MUTE_STATE%" id="vol-mute-btn" onclick="toggleMute()">%MUTE_LABEL%</button>
                 <button class="rightbtn" id="vol-dn-btn" onclick="volumeUp()">+</button>
             </div>
         </div>
 
         <div class="section">
-            <h2>Toggle OSD</h2>
+            <h2>%TOGGLE_OSD_LABEL%</h2>
             <div class="osd-toggle">
-                <button class="leftbtn" id="osd-on-btn" onclick="showOSD()">on</button>
-                <button class="rightbtn" id="osd-off-btn" onclick="hideOSD()">off</button>
+                <button class="leftbtn" id="osd-on-btn" onclick="showOSD()">%ON_LABEL%</button>
+                <button class="rightbtn" id="osd-off-btn" onclick="hideOSD()">%OFF_LABEL%</button>
             </div>
         </div>
 
         <div class="section">
-            <h2>Play Custom URL</h2>
+            <h2>%PLAY_CUSTOM_URL_LABEL%</h2>
             <div class="url-input-container">
                 <div class="url-input-group">
-                    <input type="text" id="custom-url" class="custom-url-input" placeholder="Enter stream URL">
+                    <input type="text" id="custom-url" class="custom-url-input" placeholder="%ENTER_URL_PLACEHOLDER%">
                     <button id="latency-btn" class="%LATENCY_STATE%" onclick="toggleLatency()">
                         <span id="latency-state">%LATENCY_LABEL%</span>
                     </button>
-                    <button class="input-btn" onclick="playCustomURL()">Play</button>
+                    <button class="input-btn" onclick="playCustomURL()">%PLAY_LABEL%</button>
                 </div>
             </div>
         </div>
 
-        <h2>All Channels</h2>
+        <h2>%ALL_CHANNELS_LABEL%</h2>
         <div class="group-container">
             <!-- Channel groups will be inserted here -->
             %CHANNEL_GROUPS%
@@ -490,6 +511,11 @@
     </div>
 
     <script>
+        // Function to change language
+        function changeLanguage(language) {
+            window.location.href = '/switch_language/' + language;
+        }
+        
         // Improve mobile touch experience
         document.addEventListener('DOMContentLoaded', function () {
             // Add active/touch state for all buttons
@@ -514,7 +540,7 @@
             // Show loading indicator
             const playButton = document.querySelector('.input-btn');
             const originalText = playButton.textContent;
-            playButton.textContent = "Loading...";
+            playButton.textContent = "%LOADING%";
             playButton.disabled = true;
 
             fetch(`/play_custom?url=${encodeURIComponent(url)}`)
@@ -525,15 +551,15 @@
 
                     if (data.success) {
                         // Show toast instead of alert on mobile
-                        showToast("Now playing: " + url);
+                        showToast("%NOW_PLAYING%: " + url);
                     } else {
-                        showToast("Error: " + data.error);
+                        showToast("%ERROR%: " + data.error);
                     }
                 })
                 .catch(error => {
                     playButton.textContent = originalText;
                     playButton.disabled = false;
-                    showToast("Connection error. Please try again.");
+                    showToast("%CONNECTION_ERROR%");
                 });
         }
 
@@ -541,7 +567,7 @@
             fetch(`/toggle_latency`)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("latency-state").textContent = data.state ? "Lo" : "Hi";
+                    document.getElementById("latency-state").textContent = data.state ? "%LATENCY_LOW%" : "%LATENCY_HIGH%";
                     document.getElementById("latency-btn").className = data.state ? "ON" : "OFF";
                 });
         }
@@ -550,7 +576,7 @@
             fetch(`/toggle_retroarch`)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("retroarch-state").textContent = data.state ? "Stop RetroArch" : "Start RetroArch";
+                    document.getElementById("retroarch-state").textContent = data.state ? "%STOP_RETROARCH%" : "%START_RETROARCH%";
                     document.getElementById("retroarch-btn").className = data.state ? "ON" : "OFF";
                 });
         }
@@ -574,7 +600,7 @@
                 btn.disabled = true;
             });
 
-            showToast("Loading channel...");
+            showToast("%LOADING_CHANNEL%");
 
             fetch(`/channel?index=${index}`)
                 .then(() => window.location.reload())
@@ -582,7 +608,7 @@
                     channelButtons.forEach(btn => {
                         btn.disabled = false;
                     });
-                    showToast("Error loading channel. Try again.");
+                    showToast("%ERROR_LOADING_CHANNEL%");
                 });
         }
 
@@ -590,7 +616,7 @@
             fetch(`/toggle_deinterlace`)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("deinterlace-state").textContent = data.state ? "ON" : "OFF";
+                    document.getElementById("deinterlace-state").textContent = data.state ? "%ON_LABEL%" : "%OFF_LABEL%";
                     document.getElementById("deinterlace-btn").className = data.state ? "ON" : "OFF";
                 });
         }
@@ -607,7 +633,7 @@
             fetch(`/volume_up`)
                 .then(response => response.json())
                 .then(data => {
-                    showToast("Volume: " + data.volume + "%");
+                    showToast("%VOLUME_LEVEL%".replace("{0}", data.volume));
                 });
         }
 
@@ -615,7 +641,7 @@
             fetch(`/volume_down`)
                 .then(response => response.json())
                 .then(data => {
-                    showToast("Volume: " + data.volume + "%");
+                    showToast("%VOLUME_LEVEL%".replace("{0}", data.volume));
                 });
         }
 
@@ -623,19 +649,19 @@
             fetch(`/toggle_mute`)
                 .then(response => response.json())
                 .then(data => {
-                    muted = data.muted ? "yes" : "no";
-                    showToast("Muted: " + muted);
+                    muted = data.muted ? "%MUTED_YES%" : "%MUTED_NO%";
+                    showToast(muted);
                 });
         }
 
         function channelUp() {
-            showToast("Loading channel...");
+            showToast("%LOADING_CHANNEL%");
             fetch(`/channel_up`)
                 .then(() => window.location.reload())
         }
 
         function channelDown() {
-            showToast("Loading channel...");
+            showToast("%LOADING_CHANNEL%");
             fetch(`/channel_down`)
                 .then(() => window.location.reload())
         }

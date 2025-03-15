@@ -4,6 +4,7 @@
 import os
 import re
 import subprocess
+import secrets
 
 # Environment variables
 is_wayland = "WAYLAND_DISPLAY" in os.environ
@@ -96,5 +97,35 @@ def change_resolution(current_resolution):
             xrandr_env["DISPLAY"] = ":0"
             subprocess.run(["xrandr", "--output", "Composite-1", "--mode", new_res], check=False, env=xrandr_env)
             return get_current_resolution()
-            
+
     return current_resolution
+
+def get_or_create_secret_key():
+    """
+    Get the secret key from a file or create a new one if it doesn't exist.
+
+    Returns:
+        str: The secret key
+    """
+    key_file = os.path.join(os.path.dirname(__file__), '.secret_key')
+
+    # If the file exists, read the key
+    if os.path.exists(key_file):
+        with open(key_file, 'r') as f:
+            return f.read().strip()
+
+    # Otherwise, generate a new key and save it
+    new_key = secrets.token_hex(16)  # 32-character hex string
+
+    # Create the file with restricted permissions (readable only by the owner)
+    try:
+        # This works on Unix-like systems (Linux, macOS)
+        with open(key_file, 'w') as f:
+            f.write(new_key)
+        os.chmod(key_file, 0o600)  # Owner can read/write, no one else can access
+    except:
+        # Simplified approach for Windows or if chmod fails
+        with open(key_file, 'w') as f:
+            f.write(new_key)
+
+    return new_key

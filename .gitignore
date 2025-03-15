@@ -1,3 +1,4 @@
 __pycache__
 ipmpv.log
 .venv
+.secret_key

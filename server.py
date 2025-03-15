@@ -6,8 +6,9 @@ import re
 import subprocess
 import threading
 import flask
-from flask import request, jsonify, send_from_directory
-from utils import is_valid_url, change_resolution, get_current_resolution, is_wayland
+from flask import request, jsonify, send_from_directory, session, redirect, url_for
+from localization import localization, _
+from utils import is_valid_url, change_resolution, get_current_resolution, is_wayland, get_or_create_secret_key
 
 class IPMPVServer:
 	"""Flask server for IPMPV web interface."""
@@ -25,6 +26,7 @@ class IPMPVServer:
 		self.ipmpv_retroarch_cmd = ipmpv_retroarch_cmd
 		self.retroarch_p = None
 		self.volume_control = volume_control
+		self.app.secret_key = get_or_create_secret_key()
 
 		# Register routes
 		self._register_routes()
@@ -35,6 +37,11 @@ class IPMPVServer:
 		self.app.run(host=host, port=port)
 	def _register_routes(self):
 		"""Register Flask routes."""
+
+		@self.app.route("/switch_language/<language>")
+		def switch_language(language):
+			localization.set_language(language)
+			return redirect(request.referrer or url_for('index'))
 
 		@self.app.route("/")
 		def index():
@@ -120,18 +127,19 @@ class IPMPVServer:
 		def serve_favicon():
 			return send_from_directory("static", 'favicon.ico',
 								  mimetype='image/vnd.microsoft.icon')
-
 	def _handle_index(self):
 		"""Handle the index route."""
 		from channels import group_channels
-
+		
 		grouped_channels = group_channels(self.channels)
 		flat_channel_list = [channel for channel in self.channels]
-
+		
 		# Create the channel groups HTML
 		channel_groups_html = ""
 		for group, ch_list in grouped_channels.items():
-			channel_groups_html += f'<div class="group">{group}'
+			# Translate group name if it's a common group
+			translated_group = _(group.lower()) if group.lower() in ["other"] else group
+			channel_groups_html += f'<div class="group">{translated_group}'
 			for channel in ch_list:
 				index = flat_channel_list.index(channel)  # Get correct global index
 				channel_groups_html += f'''
@@ -141,22 +149,50 @@ class IPMPVServer:
 					</div>
 				'''
 			channel_groups_html += '</div>'
-
-		# Replace placeholders with actual values
+		
+		# Get current language and available languages for language selector
+		current_language = localization.get_language()
+		languages = {
+			'en': 'English',
+			'es': 'Español'
+			# Add more languages here as you support them
+		}
+		
+		language_selector_html = ""
+		for code, name in languages.items():
+			selected = ' selected' if code == current_language else ''
+			language_selector_html += f'<option value="{code}"{selected}>{name}</option>'
+		
+		# Replace placeholders with actual values, using translation
 		html = open("templates/index.html").read()
-		html = html.replace("%CURRENT_CHANNEL%",
-						   self.channels[self.player.current_index]['name']
-						   if self.player.current_index is not None else "None")
-		html = html.replace("%RETROARCH_STATE%",
-						   "ON" if self.retroarch_p and self.retroarch_p.poll() is None else "OFF")
-		html = html.replace("%RETROARCH_LABEL%",
-						   "Stop RetroArch" if self.retroarch_p and self.retroarch_p.poll() is None else "Start RetroArch")
-		html = html.replace("%DEINTERLACE_STATE%", "ON" if self.player.deinterlace else "OFF")
+		html = html.replace("%WELCOME_TEXT%", _("welcome_to_ipmpv"))
+		html = html.replace("%CURRENT_CHANNEL_LABEL%", _("current_channel"))
+		html = html.replace("%CURRENT_CHANNEL%", 
+						  self.channels[self.player.current_index]['name'] 
+						  if self.player.current_index is not None else "None")
+		html = html.replace("%RETROARCH_STATE%", 
+						  "ON" if self.retroarch_p and self.retroarch_p.poll() is None else "OFF")
+		html = html.replace("%RETROARCH_LABEL%", 
+						  _("stop_retroarch") if self.retroarch_p and self.retroarch_p.poll() is None else _("start_retroarch"))
+		html = html.replace("%DEINTERLACE_LABEL%", _("deinterlacing"))
+		html = html.replace("%DEINTERLACE_STATE%", _("on") if self.player.deinterlace else _("off"))
+		html = html.replace("%RESOLUTION_LABEL%", _("resolution"))
 		html = html.replace("%RESOLUTION%", self.resolution)
 		html = html.replace("%LATENCY_STATE%", "ON" if self.player.low_latency else "OFF")
-		html = html.replace("%LATENCY_LABEL%", "Lo" if self.player.low_latency else "Hi")
+		html = html.replace("%LATENCY_LABEL%", _("latency_low") if self.player.low_latency else _("latency_high"))
 		html = html.replace("%CHANNEL_GROUPS%", channel_groups_html)
-
+		html = html.replace("%VOLUME_LABEL%", _("volume"))
+		html = html.replace("%MUTE_LABEL%", _("mute"))
+		html = html.replace("%TOGGLE_OSD_LABEL%", _("toggle_osd"))
+		html = html.replace("%ON_LABEL%", _("on"))
+		html = html.replace("%OFF_LABEL%", _("off"))
+		html = html.replace("%PLAY_CUSTOM_URL_LABEL%", _("play_custom_url"))
+		html = html.replace("%ENTER_URL_PLACEHOLDER%", _("enter_stream_url"))
+		html = html.replace("%PLAY_LABEL%", _("play"))
+		html = html.replace("%ALL_CHANNELS_LABEL%", _("all_channels"))
+		html = html.replace("%STOP_LABEL%", _("stop"))
+		html = html.replace("%LANGUAGE_SELECTOR%", language_selector_html)
+		
 		return html
 
 	def _handle_play_custom(self):
@@ -164,7 +200,7 @@ class IPMPVServer:
 		url = request.args.get("url")
 
 		if not url or not is_valid_url(url):
-			return jsonify(success=False, error="Invalid or unsupported URL")
+			return jsonify(success=False, error=_("invalid_url"))
 
 		self.player.player.loadfile(url)
 		self.player.current_index = None
